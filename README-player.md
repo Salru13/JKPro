@@ -44,7 +44,11 @@ Put `dt0f.img` in the same Import folder, then **DATA PACKS → Install**. An op
 1. Create a free account on thirteenserver.online.
 2. **SETTINGS → Online → ThirteenServer**, then ✕ on the row: enter your **Online ID** and **Password** (registration code optional). Options saves.
 3. Leave Kitserver on.
-4. **PLAY**, choose online in the game. In each box: **L1 + touchpad** types your ID, **R1 + touchpad** your password, **L1 + R1 + touchpad** the registration code (any text works).
+4. **PLAY**, choose online in the game, then log in:
+   - Registration code box: hold **L1 + R1**, click the touchpad.
+   - ID box: hold **L1**, click the touchpad.
+   - Password box: hold **R1**, click the touchpad.
+   - Log in and accept the server's data pack.
 
 Your account stays on your console (`/data/JkPro/System/online-account`) and survives pkg updates.
 

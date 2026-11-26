@@ -1,6 +1,6 @@
 # JKPro
 
-Play your own PC copy of **Pro Evolution Soccer 2013** on a PS4: native 1920×1080, High, 60 FPS, full screen.
+Play your own PC copy of **Pro Evolution Soccer 2013** on a PS4: native 1920×1080, High, 60 FPS, full screen, and **online against other players** through ThirteenServer (from 1.01, see [Online play](#online-play-thirteenserver)).
 
 [![release](https://img.shields.io/github/v/release/Salru13/JkPro)](https://github.com/Salru13/JkPro/releases/latest)
 [![downloads](https://img.shields.io/github/downloads/Salru13/JkPro/total?label=downloads)](https://github.com/Salru13/JkPro/releases)
@@ -54,7 +54,7 @@ Get the `.pkg` from the [Releases](https://github.com/Salru13/JkPro/releases) pa
 
 - **PATCH** sets up the game's Windows files, imports the game's code from your `.reg`, and locks the display settings.
 - **PLAY** starts the game.
-- **SETTINGS**: Show FPS, Logs & Support, Kitserver (On / Without kits / Off) and Kitserver face fix (Off / On), shown only when your game folder has Kitserver.
+- **SETTINGS**: Show FPS, Logs & Support, Kitserver (On / Without kits / Off) and Kitserver face fix (Off / On), shown only when your game folder has Kitserver, and **Online** (Off / ThirteenServer, with your online account).
 - **SAVE GAMES** and **DATA PACKS** in the game menu: import, restore and remove.
 
 Display settings are fixed: 1920×1080, High, full screen, 60 FPS with vsync. They are not a choice.
@@ -84,13 +84,30 @@ Kitserver is your own mod, inside your game folder (`PES13/kitserver/`). JKPro d
 
 From 1.01, JKPro can take PES 2013 online through [ThirteenServer](https://thirteenserver.online), a community server for PES 2013. It is not affiliated with Konami or JKPro.
 
-1. Create a free account on thirteenserver.online.
-2. In JKPro, open **SETTINGS → Online** and choose **ThirteenServer**. Press ✕ on the row and enter your **Online ID** and **Password** (and a **Registration code** if you want one; empty uses your ID). Options saves.
-3. Leave **Kitserver** on. Without it PES 2013 stops at a "minimum system requirements" message.
-4. Press **PLAY** and choose online in the game. The game's own keyboard does not open on the PS4, so JKPro types your account for you. Select the box, then:
-   - **L1 + touchpad click**: your ID
-   - **R1 + touchpad click**: your password
-   - **L1 + R1 + touchpad click**: the registration code PES asks for first (ThirteenServer accepts any text)
+### Set up once
+
+1. Create a free account on [thirteenserver.online/register](https://thirteenserver.online/register). Your username becomes your name in the game.
+2. In JKPro, open **SETTINGS → Online** and set it to **ThirteenServer**.
+3. Press ✕ on the Online row. Enter your **Online ID** (your ThirteenServer username) and your **Password** with the on-screen keyboard. Leave **Registration code** empty: then your ID is used, and ThirteenServer accepts any text. Press **Options** to save.
+4. Leave **Kitserver** on. Without it PES 2013 stops at a "minimum system requirements" message.
+
+### Log in, step by step
+
+The game's own keyboard does not open on the PS4, so JKPro types your saved account into the box you have selected:
+
+| Button | Types |
+|---|---|
+| **L1 + touchpad click** | your ID |
+| **R1 + touchpad click** | your password |
+| **L1 + R1 + touchpad click** | the registration code |
+
+1. Press **PLAY** and choose online in the game's main menu.
+2. PES asks for a **registration code**: select the box, hold **L1 + R1** and click the touchpad, then confirm.
+3. At the login, select the **ID** box: hold **L1** and click the touchpad.
+4. Select the **password** box: hold **R1** and click the touchpad.
+5. Confirm and log in. Accept the server's data pack when the game offers it. Then pick a lobby and play.
+
+Hold the shoulder button first, then click the touchpad. Each click types the whole text and presses Enter.
 
 How it works:
 - JKPro points the game's old online addresses to ThirteenServer, as the server's own PC `setup.bat` does with the Windows hosts file.
