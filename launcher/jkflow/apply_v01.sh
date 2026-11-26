@@ -15,7 +15,7 @@ P="$J/prospero/src/bl_paths.h"
 
 for f in jk_fs.c jk_fs.h jk_sha256.c jk_sha256.h jk_regimport.c jk_regimport.h jk_pes13set.c jk_pes13set.h jk_pes13set_base.inc \
          jk_games.c jk_games.h jk_gamecfg.c jk_gamecfg.h jk_ui.c jk_ui.h jk_art.c jk_art.h jkpro_ui.c jkpro_ui.h jkpro_draw.c jk_support.c jk_support.h \
-         jkpro_art.c jkpro_art.h jkpro_loader.c jkpro_loader.h jkpro_prefix.c jkpro_prefix.h jkpro_datapack.c jkpro_datapack.h jkpro_kitcfg.c jkpro_kitcfg.h jkpro_fservfix.c jkpro_fservfix.h \
+         jk_keyboard.c jk_frontend.h jk_config.h jkpro_art.c jkpro_art.h jkpro_loader.c jkpro_loader.h jkpro_prefix.c jkpro_prefix.h jkpro_datapack.c jkpro_datapack.h jkpro_kitcfg.c jkpro_kitcfg.h jkpro_fservfix.c jkpro_fservfix.h jkpro_online.c jkpro_online.h \
          jk_release.c jk_release.h jk_release_key.h jk_ed25519.c jk_ed25519.h \
          jk_screens.h jk_modset.h jk_pace.h jk_patcher.h jk_saves.h jk_keyboard.h jk_controls.h; do
     cp "$L/src/$f" "$J/prospero/src/$f"
@@ -81,6 +81,59 @@ static void jkpro_bl_progress(BlFrame *f, uint64_t t_ms, const char *big, unsign
                            ('    bl_loader_release();', '    jkpro_loader_release();', 1)):
         assert s.count(old) == want, (old, s.count(old))
         s = s.replace(old, new)
+# Online account (1.01, owner: "mata in dem i förväg" as in Blur): the launcher keeps the player's
+# ThirteenServer login in <System>/online-account (line 1 the ID, line 2 the password). In the game,
+# L1 + touchpad click types the ID and R1 + touchpad click the password into the focused field,
+# through the on-screen keyboard's own typing path (pw_osk_finished: the keys, then Enter).
+if 'jkpro_account_load' not in s:
+    s = s.replace('#include "jkpro_loader.h"\n', '''#include "jkpro_loader.h"
+#define JKPRO_ACCOUNT_FILE "/data/JkPro/System/online-account"
+static char jkpro_account_id[64], jkpro_account_pw[64], jkpro_account_code[64];
+static int jkpro_account_ok;
+static void jkpro_account_line(FILE *f, char *out, size_t cap)
+{
+    if (!fgets(out, (int)cap, f)) { out[0] = 0; return; }
+    size_t n = strlen(out);
+    while (n && (out[n - 1] == '\\n' || out[n - 1] == '\\r')) out[--n] = 0;
+}
+static void jkpro_account_load(void)
+{
+    FILE *f = fopen(JKPRO_ACCOUNT_FILE, "rb");
+    if (!f) f = fopen(JKPRO_ACCOUNT_FILE ".txt", "rb");   /* Notepad's default name */
+    if (!f) { PS5LOG_LOG("JKPRO account none"); return; }
+    jkpro_account_line(f, jkpro_account_id, sizeof jkpro_account_id);
+    jkpro_account_line(f, jkpro_account_pw, sizeof jkpro_account_pw);
+    jkpro_account_line(f, jkpro_account_code, sizeof jkpro_account_code);   /* optional line 3: the registration code */
+    fclose(f);
+    jkpro_account_ok = jkpro_account_id[0] && jkpro_account_pw[0];
+    PS5LOG_LOG("JKPRO account %s id_len=%u code=%s", jkpro_account_ok ? "ready" : "incomplete", (unsigned)strlen(jkpro_account_id),
+               jkpro_account_code[0] ? "own" : "id");
+}
+''', 1)
+    a = '''            osk_status = pw_osk_ps5_open(&osk_ps5, pw_osk_ps5_system_ops(osk_log), user);
+            game_menu.keyboard = osk_status == PW_OK;
+'''
+    assert s.count(a) == 1, 'osk open'
+    s = s.replace(a, a + '            jkpro_account_load();\n')
+    a = '''            if (osk_status == PW_OK) {
+                PwOskView view;
+'''
+    assert s.count(a) == 1, 'osk tick'
+    s = s.replace(a, '''            if (osk_status == PW_OK && jkpro_account_ok && (pressed & PW_OSK_TOUCHPAD) &&
+                (held & (0x400u | 0x800u)) && !osk_ps5.showing) {
+                /* L1: the ID, R1: the password, L1+R1: the registration code (line 3; the server
+                   accepts any text, so without one the ID is typed) */
+                const int l1 = (held & 0x400u) != 0, r1 = (held & 0x800u) != 0;
+                const char *what = l1 && r1 ? "code" : l1 ? "id" : "password";
+                const char *text = l1 && r1 ? (jkpro_account_code[0] ? jkpro_account_code : jkpro_account_id)
+                                 : l1 ? jkpro_account_id : jkpro_account_pw;
+                pw_osk_open(&osk);
+                pw_osk_opened(&osk, 1);
+                pw_osk_finished(&osk, text);
+                pressed &= ~PW_OSK_TOUCHPAD;
+                PS5LOG_LOG("JKPRO account typed %s", what);
+            }
+''' + a)
 open(p, 'w').write(s)
 print('wine64_main.c patched')
 EOF

@@ -39,6 +39,17 @@ JKPro runs your own copy of Pro Evolution Soccer 2013 (PC) on a PS4 at 1920×108
 
 Put `dt0f.img` in the same Import folder, then **DATA PACKS → Install**. An option file made for a data pack needs that pack installed.
 
+## Online play (ThirteenServer)
+
+1. Create a free account on thirteenserver.online.
+2. **SETTINGS → Online → ThirteenServer**, then ✕ on the row: enter your **Online ID** and **Password** (registration code optional). Options saves.
+3. Leave Kitserver on.
+4. **PLAY**, choose online in the game. In each box: **L1 + touchpad** types your ID, **R1 + touchpad** your password, **L1 + R1 + touchpad** the registration code (any text works).
+
+Your account stays on your console (`/data/JkPro/System/online-account`) and survives pkg updates.
+
+The server sends its own data pack inside the game. If it ever changes its address, put `online-server.txt` (lines like `95.214.55.111 ntl.konamionline.com`) in `/data/JkPro/System/`.
+
 ## Kitserver 13 (your own mod)
 
 - **SETTINGS → Kitserver**: On, Without kits, or Off.

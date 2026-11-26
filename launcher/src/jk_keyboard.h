@@ -24,7 +24,7 @@
 
 #include "jk_ui.h"
 
-#define JK_KB_MAX_LEN 31
+#define JK_KB_MAX_LEN 63   /* JKPro: the ThirteenServer ID and password (63) */
 
 enum { JK_KB_EDITING = 0, JK_KB_DONE, JK_KB_CANCEL };
 enum { JK_KB_ROWS = 5, JK_KB_COLS = 10 };
@@ -38,6 +38,7 @@ typedef struct JkKeyboard {
     int row, col;                     /* focused cell; wide keys span cells */
     int result;
     int (*allowed)(int ch);           /* NULL: every printable ASCII character */
+    int mask;                         /* JKPro: draw the text as '*' (a password); set after init */
 } JkKeyboard;
 
 void jk_keyboard_init(JkKeyboard *kb, const char *title, const char *initial, int max_len, int (*allowed)(int ch));

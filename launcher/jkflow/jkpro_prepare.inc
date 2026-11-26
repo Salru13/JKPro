@@ -276,6 +276,28 @@ static void jkpro_launcher_screen(void)
     /* No forced-exec migration of every mapping (agent A: the kernel-panic window and a flexible-memory
      * consumer; bench T1x 60 -> 227 MB free). Read by JkFlow's ntdll (virtual_set_force_exec). */
     JKPRO_ENV("PW_PS4_FORCE_EXEC", "0");
+    {   /* SETTINGS > Online server (ThirteenServer): <System>/online-hosts holds the table for the
+         * Wine resolver (engine/online/pw_hosts.h); absent = off, the game as in 1.00. */
+        char hosts_path[240], hosts[sizeof(blur_decision.env[0].value)];
+        snprintf(hosts_path, sizeof hosts_path, "%s/online-hosts", library_root);
+        FILE *hf = fopen(hosts_path, "rb");
+        size_t hn = hf ? fread(hosts, 1, sizeof hosts - 1, hf) : 0;
+        if (hf) fclose(hf);
+        while (hn && (hosts[hn - 1] == '\n' || hosts[hn - 1] == '\r' || hosts[hn - 1] == ' ')) hn--;
+        hosts[hn] = 0;
+        if (hn) JKPRO_ENV("JK_HOSTS", hosts);
+        /* Wine on the console has no Nsi device: GetAdaptersInfo says "no adapter" and the game reports
+         * its network settings. Our client's net cache mode 3 serves one synthetic Ethernet adapter with
+         * the console's real IPv4 (as JkFlow/Blur online, DXVK_PS4_NET_CACHE=3). */
+        if (hn) JKPRO_ENV("DXVK_PS4_NET_CACHE", "3");
+        /* online + Logs: trace the network libraries the game uses (support logs only) */
+        if (hn && logs)
+            for (unsigned i = 0; i < n; i++)
+                if (!strcmp(blur_decision.env[i].name, "WINEDEBUG"))
+                    snprintf(blur_decision.env[i].value, sizeof(blur_decision.env[i].value), "%s",
+                             "+tid,err+all,+loaddll,+msgbox,+winsock,+iphlpapi,+nsi,+wininet,+winhttp,+dnsapi,+netapi32");
+        PS5LOG_LOG("JKPRO online=%s", hn ? "on" : "off");
+    }
     if (native) {   /* bench-verified set; no DXVK_PS4_D3D9_THREAD* (presents stopped after ~20 s) */
         JKPRO_ENV("DXVK_PS4_NATIVE", "menu");
         JKPRO_ENV("DXVK_PS4_NATIVE_ENC_WORKER", "1");

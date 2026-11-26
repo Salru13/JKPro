@@ -14,7 +14,7 @@ B="${JK_BOOTSTRAP:-$HOME/orbis-win-host-bootstrap}"
 J="${J:-$B/jkpro-title}"
 V="$B/blur-launcher-r4/package-view-292"
 TITLE_ID="${TITLE_ID:-JKPR00001}"
-VER="${JK_VERSION:-01.00}"
+VER="${JK_VERSION:-01.01}"
 CONTENT_ID="IV0000-${TITLE_ID}_00-JKPRO00000000001"
 TOOLS="$B/native298-package277/orbis/sdk/orbis-sdk-v1/sdk/bin/linux"
 PKGTOOL="$TOOLS/PkgTool.Core"
@@ -37,6 +37,18 @@ pin "$PE_CLIENT" 16ca3a5452026ead32fc45813b87a4cc601a4ec7b8ac009f4e502de20e12737
 SERVER="${JK_SERVER_PRX:-$HOME/nfsmw-bench/native/server-enc17/link/dxvknative.prx}"
 pin "$SERVER" 86e62a08a2a88ee67faa20313fdf544bbdce5133cd67d86a8a496ab1322fbcf7 "native server (enc17)"
 SRV_PATHS="sce_module/dxvknative.prx win/wine/lib/wine/x86_64-unix/dxvknative.prx"
+# 1.01 online (ThirteenServer): JkFlow's ws2_32 + the JK_HOSTS table, engine/online/build_jkpro_ws2_32.py
+WS2="${JK_WS2_PRX:-$B/jkpro-ws2_32-r1/ws2_32.prx}"
+pin "$WS2" 34e15fdf20f4c0ced5ccb72c9e333f1cf2a95c2084e296a3fb921552f2f034b6 "ws2_32 (online)"
+WS2_PATHS="sce_module/ws2_32.prx win/wine/lib/wine/x86_64-unix/ws2_32.prx"
+# 1.01 online: Wine iphlpapi + a synthetic adapter (the console has no Nsi device), engine/online/build_jkpro_iphlpapi.sh
+IPH="${JK_IPHLPAPI_DLL:-$B/jkpro-iphlpapi-r4/iphlpapi.dll}"
+pin "$IPH" b21bd4d0e23758f830aab3164c3c6df2845ab9fbaec19959477fe47d0cbeac3a "iphlpapi (online)"
+IPH_PATH="win/wine/lib/wine/i386-windows/iphlpapi.dll"
+# 1.01 online: Wine ws2_32 (i386) where refused IPv4 multicast options report success (UPnP/SSDP), engine/online/build_jkpro_ws2_32_pe.sh
+WSPE="${JK_WS2_PE_DLL:-$B/jkpro-ws2pe-r1/ws2_32.dll}"
+pin "$WSPE" c39593fa953482ca2d4f43e8db0b5e86c48c7a71f3a12e6cb04ebc0c668f8b1c "ws2_32.dll (online)"
+WSPE_PATH="win/wine/lib/wine/i386-windows/ws2_32.dll"
 
 STAGE="$J/pkg-stage"; rm -rf "$STAGE" "$J/package"
 mkdir -p "$STAGE/jkpro-files" "$STAGE/sce_sys" "$J/package"
@@ -48,16 +60,25 @@ for rel in $SRV_PATHS; do
     [ -e "$V/$rel" ] || die "the view has no $rel"
     mkdir -p "$(dirname "$STAGE/$rel")"; cp "$SERVER" "$STAGE/$rel"
 done
+for rel in $WS2_PATHS; do
+    [ -e "$V/$rel" ] || die "the view has no $rel"
+    mkdir -p "$(dirname "$STAGE/$rel")"; cp "$WS2" "$STAGE/$rel"
+done
+[ -e "$V/$IPH_PATH" ] || die "the view has no $IPH_PATH"
+mkdir -p "$(dirname "$STAGE/$IPH_PATH")"; cp "$IPH" "$STAGE/$IPH_PATH"
+[ -e "$V/$WSPE_PATH" ] || die "the view has no $WSPE_PATH"
+mkdir -p "$(dirname "$STAGE/$WSPE_PATH")"; cp "$WSPE" "$STAGE/$WSPE_PATH"
 
 say "release record (jkpro-files/release.txt; release.sig only from the owner)"
 # The signature covers our code too, not only jkpro-files/: the title (eboot.bin + prx) and the native
 # server at their installed paths (jk_release_verify hashes <app_root>/<path>).
 python3 -I - "$STAGE/jkpro-files" \
     "eboot.bin=$J/reloc-build/eboot.bin" "sce_module/relocated_wine_app.prx=$PRX" \
-    "sce_module/dxvknative.prx=$SERVER" "win/wine/lib/wine/x86_64-unix/dxvknative.prx=$SERVER" <<'PYEOF'
+    "sce_module/dxvknative.prx=$SERVER" "win/wine/lib/wine/x86_64-unix/dxvknative.prx=$SERVER" \
+    "sce_module/ws2_32.prx=$WS2" "win/wine/lib/wine/x86_64-unix/ws2_32.prx=$WS2" "$IPH_PATH=$IPH" "$WSPE_PATH=$WSPE" <<'PYEOF'
 import hashlib, os, sys
 base = sys.argv[1]
-lines = ['JKPRO-RELEASE 1', 'build JKPro 1.0']
+lines = ['JKPRO-RELEASE 1', 'build JKPro ' + os.environ.get('JK_BUILD_NAME', '1.01')]
 for spec in sys.argv[2:]:
     rel, src = spec.split('=', 1)
     lines.append('%s  %s' % (hashlib.sha256(open(src, 'rb').read()).hexdigest(), rel))
@@ -117,6 +138,9 @@ printf 'sce_module/relocated_wine_app.prx\t%s\n' "$PRX" >> "$LIST"
     case "$rel" in
         blur-files/*|eboot.bin|sce_module/relocated_wine_app.prx|sce_sys/*) continue ;;
         sce_module/dxvknative.prx|win/wine/lib/wine/x86_64-unix/dxvknative.prx) continue ;;   # staged: enc17
+        sce_module/ws2_32.prx|win/wine/lib/wine/x86_64-unix/ws2_32.prx) continue ;;   # staged: online ws2_32
+        win/wine/lib/wine/i386-windows/iphlpapi.dll) continue ;;   # staged: online iphlpapi
+        win/wine/lib/wine/i386-windows/ws2_32.dll) continue ;;   # staged: online ws2_32 (PE)
     esac
     printf '%s\t%s\n' "$rel" "$(readlink -f "$V/$rel")" >> "$LIST"
 done

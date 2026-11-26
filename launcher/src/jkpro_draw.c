@@ -384,7 +384,7 @@ static void draw_patch(JkFrame *f, const JpModel *m)
 
 static const char *SET_LABEL[JP_SET_COUNT] = {
     "Resolution", "Picture quality", "Display", "Frame rate", "Controller", "Show FPS", "Kitserver", "Kitserver face fix",
-    "Logs & support", "About"
+    "Online", "Logs & support", "About"
 };
 
 static void setting_value(const JpModel *m, int row, char *out, size_t cap, const char **lock)
@@ -402,6 +402,7 @@ static void setting_value(const JpModel *m, int row, char *out, size_t cap, cons
         snprintf(out, cap, "%s", m->face_state == JKPRO_FSERVFIX_PATCHED ? "On"
                                : m->face_state == JKPRO_FSERVFIX_ALREADY ? "Off" : "Not for this fserv.dll");
         break;
+    case JP_SET_ONLINE: snprintf(out, cap, "%s  ›", m->online ? "ThirteenServer" : "Off"); break;
     case JP_SET_LOGS: snprintf(out, cap, "%s  ›", m->logs ? "Logs on" : "Logs off"); break;
     default: snprintf(out, cap, "›"); break;
     }
@@ -413,7 +414,7 @@ static void draw_settings(JkFrame *f, const JpModel *m)
     /* the Kitserver rows only with their files; the line under a Kitserver row only while it is focused */
     int nrows = JP_SET_COUNT - !m->kit_avail - !m->face_avail;
     int y = 180, w = 1360;
-    int rh = nrows >= 10 ? 60 : nrows == 9 ? 68 : 76, gap = nrows >= 10 ? 6 : 8, ty = (rh - 48) / 2;
+    int rh = nrows >= 11 ? 56 : nrows == 10 ? 60 : nrows == 9 ? 68 : 76, gap = nrows >= 10 ? 6 : 8, ty = (rh - 48) / 2;
     for (int i = 0; i < JP_SET_COUNT; i++, y += rh + gap) {
         if ((i == JP_SET_KITSERVER && !m->kit_avail) || (i == JP_SET_FACEFIX && !m->face_avail)) { y -= rh + gap; continue; }
         int locked = i == JP_SET_RESOLUTION || i == JP_SET_QUALITY || i == JP_SET_DISPLAY || i == JP_SET_FRAMERATE ||
@@ -441,6 +442,8 @@ static void draw_settings(JkFrame *f, const JpModel *m)
                           : i == JP_SET_KITSERVER ? "Kitserver is your own mod. Without kits turns off only its kit module."
                           : i == JP_SET_FACEFIX ? "Turn on if PES 2013 closes while you scroll fast through teams. Broken faces "
                                                   "then show a default face."
+                          : i == JP_SET_ONLINE ? "Play online through ThirteenServer. Press Cross for your account and how to "
+                                                 "log in inside the game."
                           : NULL;
         if (under) {
             text_fit(f, JK_FONT_HINT, X0 + 32, y + rh + 2, under, C_DIM, w - 64);
@@ -700,8 +703,20 @@ static int help_lines(const JpModel *m, int page, HelpLine *l, int max, const ch
         P("%s/Export/", r);
         T("The registry file can also be on the drive, in USB:/JKPro/.");
         break;
+    case JP_HELP_ONLINE:
+        *title = "6  Online (ThirteenServer)";
+        T("Online play goes through ThirteenServer, a free community server for PES 2013. Create an account on "
+          "thirteenserver.online (the password has 6 to 20 characters).");
+        T("Then SETTINGS > Online: turn on ThirteenServer and enter the same ID and password. JKPro keeps them only on "
+          "this PS4, in:");
+        P("%s", m->online_file);
+        T("In the game the PS4 keyboard does not open. In the box: L1 + touchpad = ID, R1 + touchpad = password, "
+          "L1 + R1 + touchpad = registration code (PES asks for it before the login; ThirteenServer takes any text, and "
+          "with none set your ID is typed).");
+        T("Leave Kitserver on: without it PES 2013 stops at a \"minimum system requirements\" message.");
+        break;
     default:
-        *title = "6  Support and if something goes wrong";
+        *title = "7  Support and if something goes wrong";
         T("Settings > Logs & support > Save support bundle. It is written to:");
         P("%s/support/", m->logs_path);
         T("and to USB:/JKPro-support/ when a drive is in. It holds logs only: no saves, no registry file.");
@@ -751,6 +766,42 @@ int jkpro_help_lines(const JpModel *m, int page, char *out, size_t cap)
         snprintf(out + k, cap - k, "%s\n", l[i].text);
     }
     return n;
+}
+
+static void draw_online(JkFrame *f, const JpModel *m)
+{
+    heading(f, "ONLINE", "ThirteenServer");
+    static const char *LBL[JP_ONL_COUNT] = { "Online server", "Online ID", "Password", "Registration code" };
+    int y = 170, w = 1360, rh = 72;
+    for (int i = 0; i < JP_ONL_COUNT; i++, y += rh + 8) {
+        int focus = i == m->online_focus && !m->kb_field;
+        if (focus) { jk_fill(f, X0, y, w, rh, C_STAND2); frame_rect(f, X0, y, w, rh, 4, C_FLOOD); }
+        jk_text(f, JK_FONT_BODY, X0 + 32, y + 12, LBL[i], C_CHALK);
+        char v[96];
+        if (i == JP_ONL_SERVER) snprintf(v, sizeof v, focus ? "â¹  %s  âº" : "%s", m->online ? "ThirteenServer" : "Off");
+        else if (i == JP_ONL_ID) snprintf(v, sizeof v, "%s  âº", m->online_id[0] ? m->online_id : "Not set");
+        else if (i == JP_ONL_CODE) snprintf(v, sizeof v, "%s  \xE2\x80\xBA", m->online_code[0] ? m->online_code : "(uses your ID)");
+        else if (m->online_pw[0]) {
+            size_t n = strlen(m->online_pw);
+            if (n > 20) n = 20;
+            memset(v, '*', n);
+            snprintf(v + n, sizeof v - n, "  âº");
+        } else snprintf(v, sizeof v, "Not set  âº");
+        int dim = (i == JP_ONL_ID && !m->online_id[0]) || (i == JP_ONL_PW && !m->online_pw[0]) ||
+                  (i == JP_ONL_CODE && !m->online_code[0]);
+        text_right(f, JK_FONT_BODY, X0 + w - 32, y + 12, v, dim ? C_DIM : C_CHALK);
+    }
+    y += 16;
+    y += wrap(f, JK_FONT_HINT, X0, y, X1 - X0, "Create a free account on thirteenserver.online (password 6 to 20 characters), "
+              "then enter the same ID and password here. JKPro keeps them only on this PS4:", C_DIM) + 4;
+    text_fit(f, JK_FONT_HINT, X0 + 40, y, m->online_file, C_CHALK, X1 - X0 - 40);
+    y += 44;
+    y += wrap(f, JK_FONT_HINT, X0, y, X1 - X0, "In the game the PS4 keyboard does not open: L1 + touchpad = ID, R1 + touchpad = "
+              "password, L1 + R1 + touchpad = registration code. Leave Kitserver on.", C_DIM) + 10;
+    if (m->online_msg[0]) text_fit(f, JK_FONT_BODY, X0, y, m->online_msg, C_OK, X1 - X0);
+    Hint h[] = { { JK_BTN_UPDOWN, "Choose" }, { JK_BTN_CROSS, "Change" }, { JK_BTN_CIRCLE, "Back" } };
+    hints(f, h, 3);
+    if (m->kb_field) jk_keyboard_draw(f, &m->kb);
 }
 
 static void draw_logs(JkFrame *f, const JpModel *m)
@@ -946,6 +997,7 @@ void jkpro_draw(JkFrame *f, const JpModel *m)
     case JP_SCR_FAILED: draw_failed(f, m); break;
     case JP_SCR_RESTORE: draw_restore(f, m); break;
     case JP_SCR_DATAPACKS: draw_datapacks(f, m); break;
+    case JP_SCR_ONLINE: draw_online(f, m); break;
     }
     badge(f, m);
     if (m->screen == JP_SCR_SHELF || m->screen == JP_SCR_FAILED)

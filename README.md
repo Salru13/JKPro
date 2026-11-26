@@ -80,6 +80,25 @@ Kitserver is your own mod, inside your game folder (`PES13/kitserver/`). JKPro d
 - **SETTINGS → Kitserver**: On, Without kits (kit module off) or Off (no Kitserver module).
 - **SETTINGS → Kitserver face fix**: turn it On if PES 2013 closes while you scroll fast through teams. It patches Kitserver's face module (`fserv.dll`) in place and keeps your original next to it (`fserv.dll.jkpro-orig`); Off puts the original back. Players with broken face data then show a default face.
 
+## Online play (ThirteenServer)
+
+From 1.01, JKPro can take PES 2013 online through [ThirteenServer](https://thirteenserver.online), a community server for PES 2013. It is not affiliated with Konami or JKPro.
+
+1. Create a free account on thirteenserver.online.
+2. In JKPro, open **SETTINGS → Online** and choose **ThirteenServer**. Press ✕ on the row and enter your **Online ID** and **Password** (and a **Registration code** if you want one; empty uses your ID). Options saves.
+3. Leave **Kitserver** on. Without it PES 2013 stops at a "minimum system requirements" message.
+4. Press **PLAY** and choose online in the game. The game's own keyboard does not open on the PS4, so JKPro types your account for you. Select the box, then:
+   - **L1 + touchpad click**: your ID
+   - **R1 + touchpad click**: your password
+   - **L1 + R1 + touchpad click**: the registration code PES asks for first (ThirteenServer accepts any text)
+
+How it works:
+- JKPro points the game's old online addresses to ThirteenServer, as the server's own PC `setup.bat` does with the Windows hosts file.
+- Your `pes2013.exe` is not changed.
+- Your account stays on your console only, in `/data/JkPro/System/online-account` (line 1 ID, line 2 password, optional line 3 registration code). It is never logged and never sent anywhere except to the game. Reinstalling or updating the pkg keeps it.
+- **Off** (the default) plays exactly as before.
+- The server sends its data pack inside the game. It goes into `/data/JkPro/DataPacks/PES13`.
+
 ## Official builds and verification
 
 Official JKPro releases come **only** from https://github.com/Salru13/JkPro.
@@ -122,6 +141,12 @@ Yes. Import is yours: JKPro empties it after a checked copy, and you can add, re
 ### The game closes when I scroll fast through teams (Kitserver)
 
 Turn on **SETTINGS → Kitserver face fix**. Some option files give players a face that does not exist in the game's data, and Kitserver's face module then makes the game read a texture that is not there. The fix shows the game's default face for those players.
+
+### Online: "Connecting to network" or "Different data"
+
+- **Connecting to network** that never finishes: check that **SETTINGS → Online** is set to ThirteenServer, and that the PS4 has internet.
+- **The server changed its address:** put a file `online-server.txt` in `/data/JkPro/System/` with the server's lines in hosts-file form, for example `95.214.55.111 ntl.konamionline.com`. JKPro uses that file instead of its built-in list.
+- **Different data:** the data packs do not match. Let the game download the server's data pack, and do not install another pack under DATA PACKS while you play online.
 
 ### 30 FPS or 60 FPS?
 

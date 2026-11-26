@@ -46,6 +46,7 @@ static JpModel base(void)
     snprintf(m.root_path, sizeof m.root_path, "/data/JkPro");
     snprintf(m.game_path, sizeof m.game_path, "/data/JkPro/PES13");
     snprintf(m.logs_path, sizeof m.logs_path, "/data/JkPro/Logs");
+    snprintf(m.online_file, sizeof m.online_file, "/data/JkPro/System/online-account");
     snprintf(m.sav_drop, sizeof m.sav_drop, "/data/JkPro/Saves/PES13/Import/");
     snprintf(m.sav_live, sizeof m.sav_live, "/data/JkPro/Saves/PES13/KONAMI/Pro Evolution Soccer 2013/save/");
     snprintf(m.sav_bak, sizeof m.sav_bak, "/data/JkPro/System/backup/saves/PES13/");
@@ -134,6 +135,17 @@ static int cases(Case *c)
     m.kit_avail = 1; m.kit_mode = m.kit_set = 0;
     m.face_avail = 1; m.face_state = 0; m.face_set = 1;   /* face fix on */
     snprintf(c[n].name, sizeof c[n].name, "settings-facefix"); c[n++].m = m;
+
+    m = base();
+    m.screen = JP_SCR_ONLINE; m.online = 1; m.online_focus = JP_ONL_ID;
+    snprintf(m.online_id, sizeof m.online_id, "Joker13");
+    snprintf(m.online_pw, sizeof m.online_pw, "secret1");   /* registration code empty: "uses your ID" */
+    snprintf(c[n].name, sizeof c[n].name, "online"); c[n++].m = m;
+
+    m.kb_field = JP_ONL_PW;
+    jk_keyboard_init(&m.kb, "PASSWORD", "secret1", 63, NULL);
+    m.kb.mask = 1;
+    snprintf(c[n].name, sizeof c[n].name, "online-password-keyboard"); c[n++].m = m;
 
     m = base();
     m.screen = JP_SCR_SAVES;

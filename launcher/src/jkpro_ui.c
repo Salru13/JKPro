@@ -17,6 +17,7 @@
 #include "jkpro_datapack.h"
 #include "jkpro_kitcfg.h"
 #include "jkpro_fservfix.h"
+#include "jkpro_online.h"
 
 #include <dirent.h>
 #include <stdio.h>
@@ -269,6 +270,72 @@ static int face_sync(JpApp *a, int on)
     return r;
 }
 
+/* ---------------------------------------------------------------- online account */
+
+#define JKPRO_ACCOUNT "online-account"
+
+static void account_line(FILE *f, char *out, size_t cap)
+{
+    if (!fgets(out, (int)cap, f)) { out[0] = 0; return; }
+    size_t n = strlen(out);
+    while (n && (out[n - 1] == '\n' || out[n - 1] == '\r')) out[--n] = 0;
+}
+
+/* <system_dir>/online-account, else online-account.txt (Notepad's name), as the title reads it */
+static void account_load(JpApp *a)
+{
+    JpModel *m = &a->m;
+    m->online_id[0] = m->online_pw[0] = m->online_code[0] = 0;
+    char p[PATH_MAX_JP];
+    snprintf(p, sizeof p, "%s/" JKPRO_ACCOUNT, a->s->system_dir);
+    FILE *f = fopen(p, "rb");
+    if (!f) {
+        snprintf(p, sizeof p, "%s/" JKPRO_ACCOUNT ".txt", a->s->system_dir);
+        f = fopen(p, "rb");
+    }
+    if (!f) return;
+    account_line(f, m->online_id, sizeof m->online_id);
+    account_line(f, m->online_pw, sizeof m->online_pw);
+    account_line(f, m->online_code, sizeof m->online_code);
+    fclose(f);
+}
+
+/* Writes both lines to <system_dir>/online-account (and drops a .txt: one file);
+ * both empty: no file. Logs lengths only. 0 ok, -1 failed. */
+static int account_save(JpApp *a)
+{
+    JpModel *m = &a->m;
+    char p[PATH_MAX_JP], t[PATH_MAX_JP], body[224], ln[80];
+    snprintf(p, sizeof p, "%s/" JKPRO_ACCOUNT, a->s->system_dir);
+    snprintf(t, sizeof t, "%s/" JKPRO_ACCOUNT ".txt", a->s->system_dir);
+    int rc;
+    if (!m->online_id[0] && !m->online_pw[0] && !m->online_code[0]) {
+        rc = jk_fs_exists(p) && jk_fs_remove(p) != 0 ? -1 : 0;
+    } else {
+        int n = m->online_code[0] ? snprintf(body, sizeof body, "%s\n%s\n%s\n", m->online_id, m->online_pw, m->online_code)
+                                  : snprintf(body, sizeof body, "%s\n%s\n", m->online_id, m->online_pw);
+        rc = jk_fs_mkdir_p(a->s->system_dir) == 0 && jk_fs_write_atomic(p, body, (size_t)n) == 0 ? 0 : -1;
+        memset(body, 0, sizeof body);
+    }
+    if (rc == 0 && jk_fs_exists(t)) jk_fs_remove(t);
+    snprintf(ln, sizeof ln, "id %zu, password %zu, code %zu", strlen(m->online_id), strlen(m->online_pw),
+             strlen(m->online_code));
+    jp_log(a, rc == 0 ? "JKPRO online account saved (%s characters)" : "JKPRO online account NOT saved (%s characters)", ln);
+    return rc;
+}
+
+static void online_toggle(JpApp *a)
+{
+    JpModel *m = &a->m;
+    if (jkpro_online_set(a->s->system_dir, !m->online) == 0) {
+        m->online = !m->online;
+        jp_log(a, "JKPRO online %s", m->online ? "ThirteenServer" : "off");
+    } else {
+        jp_log(a, "JKPRO online: could not change %s", JKPRO_ONLINE_FLAG);
+        cpy(m->online_msg, sizeof m->online_msg, "Not changed: JKPro could not write in its System folder.");
+    }
+}
+
 /* ---------------------------------------------------------------- settings */
 
 static void settings_load(JpApp *a)
@@ -280,6 +347,8 @@ static void settings_load(JpApp *a)
     char p[PATH_MAX_JP];
     p_flag(a, "logs-on", p, sizeof p);
     m->logs = jk_fs_exists(p);
+    m->online = jkpro_online_is_on(a->s->system_dir);
+    account_load(a);
     if (!have_game(a)) return;
     JkGameDef d;
     builtin_def(&d);
@@ -1187,6 +1256,8 @@ static void play_now(JpApp *a, int with_backup)
             jp_log(a, "JKPRO kitserver %s", jkpro_kit_word(m->kit_set));
     }
     if (face_present(a)) face_sync(a, m->face_set);   /* errors are logged; the game still starts */
+    if (jkpro_online_is_on(a->s->system_dir) && jkpro_online_set(a->s->system_dir, 1) != 0)   /* picks up online-server.txt */
+        jp_log(a, "JKPRO online: could not refresh %s", JKPRO_ONLINE_FLAG);
     char p[PATH_MAX_JP];
     memset(&a->decision, 0, sizeof a->decision);
     a->decision.action = JKPRO_START;
@@ -1610,6 +1681,10 @@ static int press_settings(JpApp *a, uint32_t p)
             cpy(m->set_msg, sizeof m->set_msg, "Face fix off. Your original fserv.dll is back.");
         return 1;
     }
+    case JP_SET_ONLINE:
+        if (lr) { online_toggle(a); return 1; }
+        if (p & JKPRO_PAD_CROSS) { m->screen = JP_SCR_ONLINE; m->online_focus = JP_ONL_SERVER; m->online_msg[0] = 0; return 1; }
+        return 0;
     case JP_SET_LOGS:
         if (p & JKPRO_PAD_CROSS) { m->screen = JP_SCR_LOGS; m->logs_focus = 0; m->bundle_msg[0] = 0; return 1; }
         return 0;
@@ -1750,6 +1825,49 @@ static int press_logs(JpApp *a, uint32_t p)
     return 1;
 }
 
+static int press_online(JpApp *a, uint32_t p)
+{
+    JpModel *m = &a->m;
+    if (m->kb_field) {
+        int r = jk_keyboard_input(&m->kb, p);
+        if (r == JK_KB_EDITING) return 1;
+        int field = m->kb_field;
+        m->kb_field = 0;
+        if (r != JK_KB_DONE) return 1;
+        char *dst = field == JP_ONL_ID ? m->online_id : field == JP_ONL_PW ? m->online_pw : m->online_code;
+        snprintf(dst, sizeof m->online_id, "%s", jk_keyboard_text(&m->kb));
+        memset(&m->kb.text, 0, sizeof m->kb.text);
+        memset(&m->kb.initial, 0, sizeof m->kb.initial);
+        if (account_save(a) != 0)
+            cpy(m->online_msg, sizeof m->online_msg, "Not saved: JKPro could not write in its System folder.");
+        else if (field == JP_ONL_PW && m->online_pw[0] && (strlen(m->online_pw) < 6 || strlen(m->online_pw) > 20))
+            cpy(m->online_msg, sizeof m->online_msg,
+                "Password saved. ThirteenServer passwords are 6 to 20 characters: check yours.");
+        else
+            cpy(m->online_msg, sizeof m->online_msg, field == JP_ONL_ID ? "Online ID saved."
+                                                   : field == JP_ONL_PW ? "Password saved." : "Registration code saved.");
+        return 1;
+    }
+    if (p & JKPRO_PAD_CIRCLE) { m->screen = JP_SCR_SETTINGS; return 1; }
+    if (p & JKPRO_PAD_UP) { if (m->online_focus > 0) m->online_focus--; return 1; }
+    if (p & JKPRO_PAD_DOWN) { if (m->online_focus + 1 < JP_ONL_COUNT) m->online_focus++; return 1; }
+    int lr = p & (JKPRO_PAD_LEFT | JKPRO_PAD_RIGHT);
+    if (m->online_focus == JP_ONL_SERVER) {
+        if (lr || (p & JKPRO_PAD_CROSS)) { m->online_msg[0] = 0; online_toggle(a); return 1; }
+        return 0;
+    }
+    if (!(p & JKPRO_PAD_CROSS)) return 0;
+    m->online_msg[0] = 0;
+    m->kb_field = m->online_focus;
+    if (m->online_focus == JP_ONL_ID) jk_keyboard_init(&m->kb, "ONLINE ID", m->online_id, 63, NULL);
+    else if (m->online_focus == JP_ONL_CODE) jk_keyboard_init(&m->kb, "REGISTRATION CODE", m->online_code, 63, NULL);
+    else {
+        jk_keyboard_init(&m->kb, "PASSWORD", m->online_pw, 63, NULL);
+        m->kb.mask = 1;
+    }
+    return 1;
+}
+
 int jkpro_app_press(JpApp *a, uint32_t p)
 {
     JpModel *m = &a->m;
@@ -1762,6 +1880,7 @@ int jkpro_app_press(JpApp *a, uint32_t p)
     case JP_SCR_SETTINGS: return press_settings(a, p);
     case JP_SCR_SAVES: return press_saves(a, p);
     case JP_SCR_LOGS: return press_logs(a, p);
+    case JP_SCR_ONLINE: return press_online(a, p);
     case JP_SCR_RESTORE: return press_restore(a, p);
     case JP_SCR_DATAPACKS: return press_datapacks(a, p);
     case JP_SCR_HELP:
@@ -1825,6 +1944,7 @@ int jkpro_app_init(JpApp *a, const JkProServices *s, JkFrame *frame)
     cpy(a->m.root_path, sizeof a->m.root_path, a->root);
     if (game[0]) cpy(a->m.game_path, sizeof a->m.game_path, game);
     else snprintf(a->m.game_path, sizeof a->m.game_path, "%s/PES13", a->root);
+    snprintf(a->m.online_file, sizeof a->m.online_file, "%s/" JKPRO_ACCOUNT, s->system_dir ? s->system_dir : "");
     if (s->logs_dir && s->logs_dir[0]) cpy(a->m.logs_path, sizeof a->m.logs_path, s->logs_dir);
     else snprintf(a->m.logs_path, sizeof a->m.logs_path, "%s/Logs", a->root);
     a->m.dp_on = s->datapacks_dir && s->datapacks_dir[0];

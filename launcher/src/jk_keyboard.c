@@ -180,14 +180,26 @@ void jk_keyboard_draw(JkFrame *f, const JkKeyboard *kb)
         }
     const char *hints = jk_keyboard_hints();
     jk_text(f, JK_FONT_HINT, ox + (PW - jk_text_width(JK_FONT_HINT, hints)) / 2, oy + PH - 62, hints, JK_RGB_SMOKE);
-    char before[JK_KB_MAX_LEN + 1];
-    memcpy(before, kb->text, (size_t)kb->cursor);
-    before[kb->cursor] = 0;
-    const int tx = ox + FX + 20, ty = oy + FY + (FH - jk_font_line_height(JK_FONT_BODY)) / 2;
-    jk_text(f, JK_FONT_BODY, tx, ty, kb->text, JK_RGB_CHALK);
-    jk_fill(f, tx + jk_text_width(JK_FONT_BODY, before) + 1, oy + FY + 14, 3, FH - 28, JK_RGB_DUSK);
+    /* the shown text ('*' when masked); a long one scrolls so the cursor stays in the field */
+    char shown[JK_KB_MAX_LEN + 1], before[JK_KB_MAX_LEN + 1];
+    for (int i = 0; i <= kb->len; i++) shown[i] = i == kb->len ? 0 : kb->mask ? '*' : kb->text[i];
     char count[16];
     snprintf(count, sizeof count, "%d/%d", kb->len, kb->max_len);
+    const int avail = FW - 60 - jk_text_width(JK_FONT_HINT, count);
+    int start = 0;
+    for (;;) {
+        int k = kb->cursor - start;
+        memcpy(before, shown + start, (size_t)k);
+        before[k] = 0;
+        if (start >= kb->cursor || jk_text_width(JK_FONT_BODY, before) <= avail) break;
+        start++;
+    }
+    char vis[JK_KB_MAX_LEN + 1];
+    snprintf(vis, sizeof vis, "%s", shown + start);
+    while (vis[0] && jk_text_width(JK_FONT_BODY, vis) > avail) vis[strlen(vis) - 1] = 0;
+    const int tx = ox + FX + 20, ty = oy + FY + (FH - jk_font_line_height(JK_FONT_BODY)) / 2;
+    jk_text(f, JK_FONT_BODY, tx, ty, vis, JK_RGB_CHALK);
+    jk_fill(f, tx + jk_text_width(JK_FONT_BODY, before) + 1, oy + FY + 14, 3, FH - 28, JK_RGB_DUSK);
     jk_text(f, JK_FONT_HINT, ox + FX + FW - 20 - jk_text_width(JK_FONT_HINT, count),
             oy + FY + (FH - jk_font_line_height(JK_FONT_HINT)) / 2, count, JK_RGB_SMOKE);
 }

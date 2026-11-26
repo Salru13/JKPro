@@ -4,6 +4,8 @@
 #include "jkpro_ui.h"
 #include "jkpro_kitcfg.h"
 #include "jkpro_fservfix.h"
+#include "jkpro_online.h"
+#include "jk_keyboard.h"
 #include "jk_fs.h"
 #include "jk_pes13set.h"
 #include "jk_test.h"
@@ -286,6 +288,8 @@ static void logs_setting_writes_flag_file(void)
     fx_init(&x);
     press(&x, JKPRO_PAD_TRIANGLE); press(&x, JKPRO_PAD_DOWN); press(&x, JKPRO_PAD_CROSS);
     CHECK_EQ(x.a.m.screen, JP_SCR_SETTINGS);
+    press(&x, JKPRO_PAD_DOWN);
+    CHECK_EQ(x.a.m.set_focus, JP_SET_ONLINE);   /* hidden Kitserver rows skipped */
     press(&x, JKPRO_PAD_DOWN);
     CHECK_EQ(x.a.m.set_focus, JP_SET_LOGS);
     press(&x, JKPRO_PAD_CROSS);
@@ -898,7 +902,7 @@ static void kitserver_face_fix_in_settings(void)
     CHECK(!m->face_avail);
     m->screen = JP_SCR_SETTINGS; m->set_focus = JP_SET_FPS;
     press(&x, JKPRO_PAD_DOWN);
-    CHECK_EQ(m->set_focus, JP_SET_LOGS);
+    CHECK_EQ(m->set_focus, JP_SET_ONLINE);      /* the hidden row is skipped */
     /* the player's original fserv.dll: the row says Off (the default) */
     tmp_put(x.root, "PES13/kitserver/fserv.dll", "ORIG");
     fx_init(&x);
@@ -990,7 +994,7 @@ static void kitserver_switch_in_settings(void)
     CHECK(!m->kit_avail);
     m->screen = JP_SCR_SETTINGS; m->set_focus = JP_SET_FPS;
     press(&x, JKPRO_PAD_DOWN);
-    CHECK_EQ(m->set_focus, JP_SET_LOGS);
+    CHECK_EQ(m->set_focus, JP_SET_ONLINE);      /* the hidden row is skipped */
     /* with it: On, the row between Show FPS and Logs */
     tmp_put(x.root, "PES13/kitserver/config.txt", CFG);
     fx_init(&x);
@@ -1031,6 +1035,150 @@ static void kitserver_switch_in_settings(void)
     static char t[8192];
     jkpro_help_lines(m, JP_HELP_GAME, t, sizeof t);
     CHECK(strstr(t, "Without kits or Kitserver Off are other ways out.") != NULL);   /* whole: not cut */
+    fx_close(&x);
+}
+
+/* Types text on the open keyboard: moves to each key, Cross; then OK (Options). */
+static void kb_type(Fx *x, const char *text)
+{
+    for (const char *p = text; *p; p++) {
+        char want[2] = { *p, 0 };
+        int found = 0;
+        for (int page = 0; page < 2 && !found; page++) {
+            for (int sh = 0; sh < 2 && !found; sh++) {
+                for (int t = 0; t < 60; t++) {
+                    if (!strcmp(jk_keyboard_focus_label(&x->a.m.kb), want)) { found = 1; break; }
+                    press(x, (t % 10 == 9) ? JKPRO_PAD_DOWN : JKPRO_PAD_RIGHT);
+                }
+                if (!found) press(x, JKPRO_PAD_TRIANGLE);   /* Shift */
+            }
+        }
+        CHECK(found);
+        press(x, JKPRO_PAD_CROSS);
+    }
+    press(x, JKPRO_PAD_OPTIONS);
+}
+
+static void online_account_in_settings(void)
+{
+    Fx x;
+    fx_open(&x, 1);
+    fx_init(&x);
+    JpModel *m = &x.a.m;
+    CHECK_EQ(m->online, 0);
+    CHECK(!m->online_id[0] && !m->online_pw[0]);
+    /* SETTINGS > Online: always there, between Show FPS and Logs here (no Kitserver) */
+    m->screen = JP_SCR_SETTINGS; m->set_focus = JP_SET_FPS;
+    press(&x, JKPRO_PAD_DOWN);
+    CHECK_EQ(m->set_focus, JP_SET_ONLINE);
+    /* RIGHT on the row turns ThirteenServer on in place */
+    press(&x, JKPRO_PAD_RIGHT);
+    CHECK_EQ(m->online, 1);
+    CHECK(exists(x.root, "System/" JKPRO_ONLINE_FLAG));
+    press(&x, JKPRO_PAD_LEFT);
+    CHECK_EQ(m->online, 0);
+    CHECK(!exists(x.root, "System/" JKPRO_ONLINE_FLAG));
+    /* Cross opens the Online page */
+    press(&x, JKPRO_PAD_CROSS);
+    CHECK_EQ(m->screen, JP_SCR_ONLINE);
+    CHECK_EQ(m->online_focus, JP_ONL_SERVER);
+    press(&x, JKPRO_PAD_CROSS);
+    CHECK_EQ(m->online, 1);
+    /* the ID: the keyboard, then saved to <System>/online-account */
+    press(&x, JKPRO_PAD_DOWN);
+    CHECK_EQ(m->online_focus, JP_ONL_ID);
+    press(&x, JKPRO_PAD_CROSS);
+    CHECK_EQ(m->kb_field, JP_ONL_ID);
+    CHECK_EQ(m->kb.max_len, 63);
+    CHECK_EQ(m->kb.mask, 0);
+    kb_type(&x, "Joker13");
+    CHECK_EQ(m->kb_field, 0);
+    CHECK(!strcmp(m->online_id, "Joker13"));
+    char buf[256];
+    CHECK(tmp_get(x.root, "System/online-account", buf, sizeof buf) >= 0 && !strcmp(buf, "Joker13\n\n"));
+    /* the password: masked keyboard; a short one is kept with a hint */
+    press(&x, JKPRO_PAD_DOWN);
+    CHECK_EQ(m->online_focus, JP_ONL_PW);
+    press(&x, JKPRO_PAD_CROSS);
+    CHECK_EQ(m->kb_field, JP_ONL_PW);
+    CHECK_EQ(m->kb.mask, 1);
+    kb_type(&x, "abc");
+    CHECK(!strcmp(m->online_pw, "abc"));
+    CHECK(strstr(m->online_msg, "6 to 20") != NULL);
+    press(&x, JKPRO_PAD_CROSS);
+    for (int i = 0; i < 3; i++) press(&x, JKPRO_PAD_SQUARE);   /* delete "abc" */
+    kb_type(&x, "secret1");
+    CHECK(!strcmp(m->online_pw, "secret1"));
+    CHECK(strstr(m->online_msg, "6 to 20") == NULL);
+    CHECK(tmp_get(x.root, "System/online-account", buf, sizeof buf) >= 0 && !strcmp(buf, "Joker13\nsecret1\n"));
+    /* Circle on the keyboard cancels: nothing changes */
+    press(&x, JKPRO_PAD_CROSS);
+    press(&x, JKPRO_PAD_SQUARE);
+    press(&x, JKPRO_PAD_CIRCLE);
+    CHECK_EQ(m->kb_field, 0);
+    CHECK(!strcmp(m->online_pw, "secret1"));
+    CHECK_EQ(m->screen, JP_SCR_ONLINE);
+    /* the password never reaches a log or the screen text */
+    char lp[400];
+    snprintf(lp, sizeof lp, "%s/jkpro.log", x.sys);
+    if (jk_fs_exists(lp)) {
+        static char lg[65536];
+        CHECK(tmp_get(x.sys, "jkpro.log", lg, sizeof lg) >= 0);
+        CHECK(strstr(lg, "secret1") == NULL);
+    }
+    /* read back at the next start; a Notepad .txt is read when there is no plain file */
+    fx_init(&x);
+    CHECK(!strcmp(m->online_id, "Joker13") && !strcmp(m->online_pw, "secret1"));
+    CHECK_EQ(m->online, 1);
+    snprintf(lp, sizeof lp, "%s/online-account", x.sys);
+    remove(lp);
+    tmp_put(x.root, "System/online-account.txt", "PadUser\r\npw123456\r\n");
+    fx_init(&x);
+    CHECK(!strcmp(m->online_id, "PadUser") && !strcmp(m->online_pw, "pw123456"));
+    /* saving from JKPro writes the plain file and drops the .txt (one source) */
+    m->screen = JP_SCR_ONLINE; m->online_focus = JP_ONL_ID;
+    press(&x, JKPRO_PAD_CROSS);
+    press(&x, JKPRO_PAD_SQUARE);
+    kb_type(&x, "R");
+    CHECK(tmp_get(x.root, "System/online-account", buf, sizeof buf) >= 0 && !strcmp(buf, "PadUseR\npw123456\n"));
+    CHECK(!exists(x.root, "System/online-account.txt"));
+    /* the registration code: empty by default, shown as "uses your ID"; typed (not masked) it is line 3 */
+    CHECK(!m->online_code[0]);
+    press(&x, JKPRO_PAD_DOWN); press(&x, JKPRO_PAD_DOWN);
+    CHECK_EQ(m->online_focus, JP_ONL_CODE);
+    press(&x, JKPRO_PAD_CROSS);
+    CHECK_EQ(m->kb_field, JP_ONL_CODE);
+    CHECK_EQ(m->kb.mask, 0);
+    CHECK_EQ(m->kb.max_len, 63);
+    kb_type(&x, "anycode");
+    CHECK(!strcmp(m->online_code, "anycode"));
+    CHECK(tmp_get(x.root, "System/online-account", buf, sizeof buf) >= 0 && !strcmp(buf, "PadUseR\npw123456\nanycode\n"));
+    /* changing the ID keeps line 3 */
+    press(&x, JKPRO_PAD_UP); press(&x, JKPRO_PAD_UP);
+    CHECK_EQ(m->online_focus, JP_ONL_ID);
+    press(&x, JKPRO_PAD_CROSS);
+    kb_type(&x, "2");
+    CHECK(tmp_get(x.root, "System/online-account", buf, sizeof buf) >= 0 && !strcmp(buf, "PadUseR2\npw123456\nanycode\n"));
+    fx_init(&x);
+    CHECK(!strcmp(m->online_code, "anycode"));
+    /* emptied: two lines again */
+    m->screen = JP_SCR_ONLINE; m->online_focus = JP_ONL_CODE;
+    press(&x, JKPRO_PAD_CROSS);
+    for (int i = 0; i < 7; i++) press(&x, JKPRO_PAD_SQUARE);
+    press(&x, JKPRO_PAD_OPTIONS);
+    CHECK(!m->online_code[0]);
+    CHECK(tmp_get(x.root, "System/online-account", buf, sizeof buf) >= 0 && !strcmp(buf, "PadUseR2\npw123456\n"));
+    /* Circle back to SETTINGS; the Help page explains the in-game keys */
+    press(&x, JKPRO_PAD_CIRCLE);
+    CHECK_EQ(m->screen, JP_SCR_SETTINGS);
+    static char t[8192];
+    jkpro_help_lines(m, JP_HELP_ONLINE, t, sizeof t);
+    CHECK(strstr(t, "thirteenserver.online") != NULL);
+    CHECK(strstr(t, "L1 + touchpad") != NULL && strstr(t, "R1 + touchpad") != NULL);
+    CHECK(strstr(t, "/online-account") != NULL);
+    CHECK(strstr(t, "pw123456") == NULL);
+    CHECK(strstr(t, "L1 + R1 + touchpad") != NULL && strstr(t, "registration code") != NULL);
+    CHECK(strstr(t, "Kitserver off") == NULL && strstr(t, "Leave Kitserver on") != NULL);
     fx_close(&x);
 }
 
@@ -1085,6 +1233,7 @@ int main(void)
     RUN(check_game_files_is_one_state_with_exact_dialogs);
     RUN(kitserver_face_fix_in_settings);
     RUN(kitserver_switch_in_settings);
+    RUN(online_account_in_settings);
     RUN(every_screen_draws);
     return jk_test_report("test_jkpro_ui");
 }

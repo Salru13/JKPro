@@ -26,6 +26,7 @@
 
 #include "jk_pes13set.h"
 #include "jk_ui.h"
+#include "jk_keyboard.h"
 
 struct JkRelease;   /* jk_screens.h: the signed-release verdict (jk_release_verify) */
 
@@ -94,6 +95,7 @@ int jkpro_ui_run(const JkProServices *s, JkProDecision *out);
 
 /* Pad bits as scePadRead reports them (the same values as jk_frontend.h). */
 enum {
+    JKPRO_PAD_OPTIONS = 0x8u,   /* the keyboard's OK */
     JKPRO_PAD_UP = 0x10u, JKPRO_PAD_RIGHT = 0x20u, JKPRO_PAD_DOWN = 0x40u, JKPRO_PAD_LEFT = 0x80u,
     JKPRO_PAD_L1 = 0x400u, JKPRO_PAD_R1 = 0x800u,
     JKPRO_PAD_TRIANGLE = 0x1000u, JKPRO_PAD_CIRCLE = 0x2000u, JKPRO_PAD_CROSS = 0x4000u, JKPRO_PAD_SQUARE = 0x8000u
@@ -103,7 +105,8 @@ typedef enum {
     JP_SCR_SHELF = 0, JP_SCR_MENU, JP_SCR_PATCH, JP_SCR_SETTINGS, JP_SCR_SAVES, JP_SCR_HELP, JP_SCR_LOGS, JP_SCR_ABOUT,
     JP_SCR_FAILED,    /* "PES 2013 didn't start" (start_failure) */
     JP_SCR_RESTORE,   /* SAVE GAMES > Restore a backup: every kept backup, pick any */
-    JP_SCR_DATAPACKS  /* the official Data Pack (dt0f.img): install, remove, use an older one */
+    JP_SCR_DATAPACKS, /* the official Data Pack (dt0f.img): install, remove, use an older one */
+    JP_SCR_ONLINE     /* SETTINGS > Online: ThirteenServer on/off, the account (1.01) */
 } JpScreen;
 
 /* A tile's state. */
@@ -130,14 +133,18 @@ typedef enum {
     JP_SET_RESOLUTION = 0, JP_SET_QUALITY, JP_SET_DISPLAY, JP_SET_FRAMERATE, JP_SET_CONTROLLER, JP_SET_FPS,
     JP_SET_KITSERVER,           /* only with <game>/kitserver/config.txt (owner, plan C) */
     JP_SET_FACEFIX,             /* only with <game>/kitserver/fserv.dll (owner, W7 face fix, off by default) */
+    JP_SET_ONLINE,              /* always: ThirteenServer on/off; Cross opens the Online page (1.01) */
     JP_SET_LOGS, JP_SET_ABOUT, JP_SET_COUNT
 } JpSetItem;
+/* Online page rows (JP_ONL_ID / _PW / _CODE are also the open keyboard's field) */
+typedef enum { JP_ONL_SERVER = 0, JP_ONL_ID, JP_ONL_PW, JP_ONL_CODE, JP_ONL_COUNT } JpOnlineRow;
 /* Save games rows */
 typedef enum { JP_SAV_LOAD = 0, JP_SAV_RESTORE, JP_SAV_EXPORT, JP_SAV_COUNT } JpSavItem;
 /* Help pages */
 /* Help (owner, rc7: a real guide like JkFlow's): one section per page */
 typedef enum {
-    JP_HELP_GAME = 0, JP_HELP_REG, JP_HELP_SAVES, JP_HELP_PACKS, JP_HELP_USB, JP_HELP_SUPPORT, JP_HELP_COUNT
+    JP_HELP_GAME = 0, JP_HELP_REG, JP_HELP_SAVES, JP_HELP_PACKS, JP_HELP_USB, JP_HELP_ONLINE, JP_HELP_SUPPORT,
+    JP_HELP_COUNT
 } JpHelpPage;
 #define JP_HELP_GAMES JP_HELP_GAME
 #define JP_HELP_PATCH JP_HELP_REG
@@ -188,6 +195,16 @@ typedef struct {
     int res;                    /* 0: 1280x720, 1: 1920x1080 */
     int quality;                /* 0 low, 1 medium, 2 high */
     int show_fps, logs;
+    int online;                 /* <system_dir>/online-hosts (SETTINGS > Online server, ThirteenServer) */
+    /* the Online page (1.01, owner: entered here as in Blur): <system_dir>/online-account,
+     * line 1 the ID, line 2 the password; never logged (lengths only) */
+    char online_id[64], online_pw[64];
+    char online_code[64];       /* line 3, optional: PES's registration code (empty: the title types the ID) */
+    int online_focus;           /* JpOnlineRow */
+    int kb_field;               /* the keyboard is open for JP_ONL_ID / JP_ONL_PW; 0 closed */
+    JkKeyboard kb;
+    char online_msg[160];
+    char online_file[240];      /* <system_dir>/online-account (Help, the page) */
     int kit_avail;              /* <game>/kitserver/config.txt exists: the Kitserver row is shown */
     int kit_mode;               /* JkKitMode shown: the state read from config.txt */
     int kit_set;                /* JkKitMode saved in settings.ini (applied before PLAY) */
