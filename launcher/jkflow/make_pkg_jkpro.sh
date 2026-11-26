@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: LGPL-2.1-or-later
+# Package JKPro (JKPR00001) on the JkFlow 1.00 runtime (WSL), after apply_v01.sh + build-launcher.sh.
+#   bash launcher/jkflow/make_pkg_jkpro.sh
+# Payload: JkFlow 1.00's merged package view (package-view-292: runtime, sce_module, win/, seed245)
+# minus blur-files/, plus our title prx, the native engine (jkpro-files/d3d9.dll: client 08cab072,
+# 28c101ff + the GetDisplayMode X8R8G8B8 fix; dxvknative.prx: the enc17 server 86e62a08, the fself of
+# the bench's 771525a0, in sce_module/ and win/.../x86_64-unix/ instead of JkFlow's b2c117c8), the PE
+# fallback client (jkpro-files/d3d9-pe.dll: c988 16ca3a54), our param.sfo and icons.
+# No game, Konami, Blur or AMAX file.
+set -euo pipefail
+here="$(cd "$(dirname "$0")" && pwd)"
+B="${JK_BOOTSTRAP:-$HOME/orbis-win-host-bootstrap}"
+J="${J:-$B/jkpro-title}"
+V="$B/blur-launcher-r4/package-view-292"
+TITLE_ID="${TITLE_ID:-JKPR00001}"
+VER="${JK_VERSION:-01.00}"
+CONTENT_ID="IV0000-${TITLE_ID}_00-JKPRO00000000001"
+TOOLS="$B/native298-package277/orbis/sdk/orbis-sdk-v1/sdk/bin/linux"
+PKGTOOL="$TOOLS/PkgTool.Core"
+export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
+export LD_LIBRARY_PATH="$HOME/.cache/orbis-ports/openssl11/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+say() { printf '== %s\n' "$*"; }
+die() { echo "make_pkg_jkpro: $*" >&2; exit 1; }
+pin() { [ "$(sha256sum "$1" | cut -c1-64)" = "$2" ] || die "unexpected $3: $1 (want ${2:0:8})"; }
+PRX="$J/reloc-build/prx/postlink/clean/relocated_wine_app.prx"
+[ -f "$PRX" ] || die "no clean title prx: build first"
+grep -a -q "JKPRO start" "$PRX" || die "the title prx has no JKPro code"
+for want in PW_PS4_FORCE_EXEC "d3d9.deferSurfaceCreation = True" "d3d9.maxAvailableMemory = 512" "JKPRO documents=" \
+            DXVK_PS4_NATIVE_FX_BRACKET_LITE dxn_arm.txt; do
+    grep -a -q "$want" "$PRX" || die "the title prx lacks: $want"
+done
+NATIVE_CLIENT="${JK_NATIVE_CLIENT:-$here/../../engine/client/candidate/d3d9.dll}"
+pin "$NATIVE_CLIENT" 08cab072514f9e481a56a16454f4d9aa675f2da793bfb190cf18830712281d7a "native client"
+PE_CLIENT="${JK_PE_CLIENT:-$B/native288-frame260-racelock-2mode/d3d9.c988.dll}"
+pin "$PE_CLIENT" 16ca3a5452026ead32fc45813b87a4cc601a4ec7b8ac009f4e502de20e12737d "PE client (c988)"
+SERVER="${JK_SERVER_PRX:-$HOME/nfsmw-bench/native/server-enc17/link/dxvknative.prx}"
+pin "$SERVER" 86e62a08a2a88ee67faa20313fdf544bbdce5133cd67d86a8a496ab1322fbcf7 "native server (enc17)"
+SRV_PATHS="sce_module/dxvknative.prx win/wine/lib/wine/x86_64-unix/dxvknative.prx"
+
+STAGE="$J/pkg-stage"; rm -rf "$STAGE" "$J/package"
+mkdir -p "$STAGE/jkpro-files" "$STAGE/sce_sys" "$J/package"
+cp "$NATIVE_CLIENT" "$STAGE/jkpro-files/d3d9.dll"
+cp "$PE_CLIENT" "$STAGE/jkpro-files/d3d9-pe.dll"      # PATCH installs it when <System>/renderer-pe exists
+mkdir -p "$STAGE/jkpro-files/about"                      # About > credits (as JK4SPEED's about/)
+cp "$here/../assets/CREDITS-JKPro.txt" "$STAGE/jkpro-files/about/CREDITS.txt"
+for rel in $SRV_PATHS; do
+    [ -e "$V/$rel" ] || die "the view has no $rel"
+    mkdir -p "$(dirname "$STAGE/$rel")"; cp "$SERVER" "$STAGE/$rel"
+done
+
+say "release record (jkpro-files/release.txt; release.sig only from the owner)"
+# The signature covers our code too, not only jkpro-files/: the title (eboot.bin + prx) and the native
+# server at their installed paths (jk_release_verify hashes <app_root>/<path>).
+python3 -I - "$STAGE/jkpro-files" \
+    "eboot.bin=$J/reloc-build/eboot.bin" "sce_module/relocated_wine_app.prx=$PRX" \
+    "sce_module/dxvknative.prx=$SERVER" "win/wine/lib/wine/x86_64-unix/dxvknative.prx=$SERVER" <<'PYEOF'
+import hashlib, os, sys
+base = sys.argv[1]
+lines = ['JKPRO-RELEASE 1', 'build JKPro 1.0']
+for spec in sys.argv[2:]:
+    rel, src = spec.split('=', 1)
+    lines.append('%s  %s' % (hashlib.sha256(open(src, 'rb').read()).hexdigest(), rel))
+rels = []
+for d, _, files in os.walk(base):
+    for n in files:
+        rels.append(os.path.relpath(os.path.join(d, n), base).replace(os.sep, '/'))
+for rel in sorted(rels):
+    if rel in ('release.txt', 'release.sig') or os.path.islink(os.path.join(base, rel)):
+        continue
+    h = hashlib.sha256(open(os.path.join(base, rel), 'rb').read()).hexdigest()
+    lines.append('%s  jkpro-files/%s' % (h, rel))
+open(os.path.join(base, 'release.txt'), 'w', newline='\n').write('\n'.join(lines) + '\n')
+print('   release.txt: %d files (incl. title + server)' % (len(lines) - 2))
+PYEOF
+# The owner signs $STAGE/jkpro-files/release.txt (never this script) and puts the raw 64-byte
+# Ed25519 signature at $J/release.sig; it is checked here with the public key only.
+SIG="${JK_RELEASE_SIG:-$J/release.sig}"
+if [ -f "$SIG" ]; then
+    PKH="$here/../src/jk_release_key.h"
+    hex=$(grep -o '0x[0-9a-fA-F][0-9a-fA-F]' "$PKH" | sed 's/0x//' | tr -d '\n')
+    [ ${#hex} = 64 ] || die "no 32-byte public key in $PKH"
+    PUB="$J/release-pub.pem"
+    { printf '%s' "302a300506032b6570032100$hex" | xxd -r -p | base64 -w0 | sed 's/^/-----BEGIN PUBLIC KEY-----\n/;s/$/\n-----END PUBLIC KEY-----/'; echo; } > "$PUB"
+    openssl pkeyutl -verify -pubin -inkey "$PUB" -rawin -in "$STAGE/jkpro-files/release.txt" -sigfile "$SIG" >/dev/null 2>&1 \
+        || die "release.sig does not verify against jk_release_key.h for this release.txt: not packaged"
+    cp "$SIG" "$STAGE/jkpro-files/release.sig"
+    echo "   release.sig verified: official build"
+else
+    echo "   no release.sig: Unofficial build"
+fi
+python3 -I "$here/make_icons.py" "$STAGE/sce_sys" >/dev/null
+cp -L "$V/sce_sys/keystone" "$STAGE/sce_sys/keystone"
+SFO="$STAGE/sce_sys/param.sfo"
+"$PKGTOOL" sfo_new "$SFO" >/dev/null
+set_sfo() { "$PKGTOOL" sfo_setentry --value "$3" --type "$2" ${4:+--maxsize "$4"} "$SFO" "$1" >/dev/null; }
+set_sfo APP_TYPE integer 1
+set_sfo APP_VER utf8 "$VER" 8
+set_sfo ATTRIBUTE integer 0x00010000
+set_sfo CATEGORY utf8 gd 4
+set_sfo CONTENT_ID utf8 "$CONTENT_ID" 48
+set_sfo DOWNLOAD_DATA_SIZE integer 0
+set_sfo PARENTAL_LEVEL integer 5
+set_sfo PUBTOOLINFO utf8 "c_date=20261125,img0_l0_size=0,img0_l1_size=0,img0_sc_ksize=512,img0_pc_ksize=832" 512
+set_sfo PUBTOOLVER integer 0x02890000
+set_sfo SYSTEM_VER integer 0
+set_sfo TITLE utf8 JKPro 128
+set_sfo TITLE_ID utf8 "$TITLE_ID" 12
+set_sfo VERSION utf8 "$VER" 8
+"$PKGTOOL" sfo_listentries "$SFO" > "$J/param-sfo.txt"
+
+say "file list"
+LIST="$J/files.tsv"; : > "$LIST"
+printf 'eboot.bin\t%s\n' "$J/reloc-build/eboot.bin" >> "$LIST"
+printf 'sce_module/relocated_wine_app.prx\t%s\n' "$PRX" >> "$LIST"
+(cd "$V" && find -L . -type f | sed 's#^\./##' | sort) | while read -r rel; do
+    case "$rel" in
+        blur-files/*|eboot.bin|sce_module/relocated_wine_app.prx|sce_sys/*) continue ;;
+        sce_module/dxvknative.prx|win/wine/lib/wine/x86_64-unix/dxvknative.prx) continue ;;   # staged: enc17
+    esac
+    printf '%s\t%s\n' "$rel" "$(readlink -f "$V/$rel")" >> "$LIST"
+done
+(cd "$STAGE" && find . -type f | sed 's#^\./##' | sort) | while read -r rel; do printf '%s\t%s\n' "$rel" "$STAGE/$rel" >> "$LIST"; done
+if cut -f1 "$LIST" | grep -i -E 'blur\.exe|pes2013\.exe|amax|blur_12|\.afs$|\.img$|\.cpk$|settings\.exe'; then die "a game/AMAX file is in the list"; fi
+wc -l < "$LIST" | sed 's/^/   files: /'
+
+say "gp4 + pkg"
+python3 -I "$here/../title/make_gp4.py" "$J/jkpro.gp4" "$CONTENT_ID" "$LIST"
+"$PKGTOOL" pkg_build "$J/jkpro.gp4" "$J/package" > "$J/pkg-build.log" 2>&1 || { tail -20 "$J/pkg-build.log"; die "pkg_build failed"; }
+PKG="$J/package/$CONTENT_ID.pkg"
+[ -f "$PKG" ] || die "no package written"
+"$PKGTOOL" pkg_validate "$PKG" > "$J/pkg-validate.log" 2>&1 || { tail -20 "$J/pkg-validate.log"; die "pkg_validate failed"; }
+grep -q '\[FAIL\]\|\[ERROR\]' "$J/pkg-validate.log" && die "pkg_validate reported a failure"
+say "package"
+sha256sum "$PKG" | tee "$J/package.sha256"
+stat -c '%s bytes' "$PKG"
+cat "$J/param-sfo.txt" | grep -E "TITLE|CONTENT|VERSION|APP_VER"

@@ -1,0 +1,83 @@
+diff -ru '--exclude=__pycache__' release-28c101ff-src/native-wine/native-dxvk/protocol/test_client_server.cpp src6-17i/native-wine/native-dxvk/protocol/test_client_server.cpp
+--- release-28c101ff-src/native-wine/native-dxvk/protocol/test_client_server.cpp	2026-11-19 14:37:14.867467463 +0100
++++ src6-17i/native-wine/native-dxvk/protocol/test_client_server.cpp	2026-11-25 15:34:52.479486582 +0100
+@@ -28,6 +28,8 @@
+ //                         live state (DXVK); Apply sends exactly them.
+ //   gamma_forward         SetGammaRamp reaches the server.
+ //   raster_moves          GetRasterStatus as DXVK fakes it (height + 20 lines at 60 Hz, ScanLine 0 in vblank).
++//   display_mode_adapter_format  GetDisplayMode(Ex) answers X8R8G8B8 as DXVK does, not the back buffer
++//                         format (JKPro PES 2013: d3dx9 texture loads need a valid adapter format).
+ //   inflight2             DXVK_PS4_NATIVE_INFLIGHT=2: Present waits for the frame two back.
+ //   latency_sent          DXVK_PS4_NATIVE_LATENCY=n is sent once.
+ // NFS native2 (2026-11-17):
+@@ -1180,6 +1182,38 @@
+   CHECK(vblank && consistent, "raster_moves: vblank %d consistent %d", int(vblank), int(consistent));
+ }
+ 
++// display_mode_adapter_format (JKPro PES 2013, 2026-11-25): GetDisplayMode answers a display
++// (adapter) format, as the PE DXVK device does (D3D9SwapChainEx::GetDisplayModeEx: always
++// X8R8G8B8), never the back buffer format. Wine d3dx9 D3DXCheckTextureRequirements passes
++// mode.Format as the AdapterFormat of IDirect3D9::CheckDeviceFormat, and DXVK's
++// IsSupportedAdapterFormat (d3d9_monitor.cpp) accepts only A2R10G10B10, X8R8G8B8, X1R5G5B5 and
++// R5G6B5: with A8R8G8B8 (PES 2013 creates 960x600 fmt=21) every format check fails and every
++// D3DXCreateTextureFromFileInMemoryEx fails ("Couldn't find suitable texture parameters").
++static void testDisplayMode(IDirect3DDevice9Ex* dev) {
++  auto reset = [&](UINT w, UINT h, D3DFORMAT f) {
++    D3DPRESENT_PARAMETERS pp = { };
++    pp.BackBufferWidth = w; pp.BackBufferHeight = h; pp.BackBufferFormat = f; pp.BackBufferCount = 1; pp.Windowed = TRUE;
++    CHECK(dev->Reset(&pp) == D3D_OK, "display_mode: Reset %ux%u fmt %u", w, h, unsigned(f));
++  };
++  for (D3DFORMAT f : { D3DFMT_A8R8G8B8, D3DFMT_UNKNOWN, D3DFMT_X8R8G8B8, D3DFMT_R5G6B5 }) {
++    reset(960, 600, f);
++    D3DDISPLAYMODE m = { };
++    CHECK(dev->GetDisplayMode(0, &m) == D3D_OK, "display_mode: GetDisplayMode hr (bb fmt %u)", unsigned(f));
++    CHECK(m.Format == D3DFMT_X8R8G8B8, "display_mode_adapter_format: GetDisplayMode Format %u with back buffer fmt %u, expected X8R8G8B8 (22)", unsigned(m.Format), unsigned(f));
++    CHECK(m.Width == 960 && m.Height == 600 && m.RefreshRate == 60, "display_mode: %ux%u@%u", m.Width, m.Height, m.RefreshRate);
++    D3DDISPLAYMODEEX mx = { }; mx.Size = sizeof(mx);
++    D3DDISPLAYROTATION rot = D3DDISPLAYROTATION_90;
++    CHECK(dev->GetDisplayModeEx(0, &mx, &rot) == D3D_OK, "display_mode: GetDisplayModeEx hr");
++    CHECK(mx.Format == D3DFMT_X8R8G8B8 && rot == D3DDISPLAYROTATION_IDENTITY, "display_mode_adapter_format: GetDisplayModeEx Format %u with back buffer fmt %u", unsigned(mx.Format), unsigned(f));
++    IDirect3DSwapChain9* sc = nullptr;
++    D3DDISPLAYMODE sm = { };
++    CHECK(dev->GetSwapChain(0, &sc) == D3D_OK && sc && sc->GetDisplayMode(&sm) == D3D_OK, "display_mode: swap chain GetDisplayMode");
++    CHECK(sm.Format == D3DFMT_X8R8G8B8, "display_mode_adapter_format: swap chain GetDisplayMode Format %u with back buffer fmt %u", unsigned(sm.Format), unsigned(f));
++    if (sc) sc->Release();
++  }
++  reset(64, 64, D3DFMT_X8R8G8B8);
++}
++
+ static void testInflight(IDirect3DDevice9Ex* dev) {
+   auto* d = static_cast<dxvk::DxnDevice260*>(dev);
+   const uint32_t saved = d->m_inflight;
+@@ -1704,6 +1738,7 @@
+     testStateBlockRecording(dev);
+     testGamma(dev);
+     testRaster(dev);
++    testDisplayMode(dev);
+     testInflight(dev);
+     testLatency();
+     testNativeGrab(dev);
+diff -ru '--exclude=__pycache__' release-28c101ff-src/native-wine/native288-claude/dxvknative_menu.inc src6-17i/native-wine/native288-claude/dxvknative_menu.inc
+--- release-28c101ff-src/native-wine/native288-claude/dxvknative_menu.inc	2026-11-25 15:30:39.017686701 +0100
++++ src6-17i/native-wine/native288-claude/dxvknative_menu.inc	2026-11-25 15:38:44.237093034 +0100
+@@ -1467,7 +1467,10 @@
+       pMode->Width = m_pp.BackBufferWidth;
+       pMode->Height = m_pp.BackBufferHeight;
+       pMode->RefreshRate = 60;
+-      pMode->Format = m_pp.BackBufferFormat;
++      // JKPro: a display (adapter) format, as DXVK's D3D9SwapChainEx::GetDisplayModeEx answers,
++      // never the back buffer format: d3dx9 passes it to CheckDeviceFormat as AdapterFormat,
++      // and DXVK refuses A8R8G8B8 there (PES 2013: every D3DX texture load failed).
++      pMode->Format = D3DFMT_X8R8G8B8;
+       return D3D_OK;
+     }
+     HRESULT STDMETHODCALLTYPE GetCreationParameters(D3DDEVICE_CREATION_PARAMETERS* p) override {
+@@ -2080,7 +2083,7 @@
+         m->Width = m_pp.BackBufferWidth;
+         m->Height = m_pp.BackBufferHeight;
+         m->RefreshRate = 60;
+-        m->Format = m_pp.BackBufferFormat;
++        m->Format = D3DFMT_X8R8G8B8;   // JKPro: display format, as GetDisplayMode
+         m->ScanLineOrdering = D3DSCANLINEORDERING_PROGRESSIVE;
+       }
+       if (r) *r = D3DDISPLAYROTATION_IDENTITY;

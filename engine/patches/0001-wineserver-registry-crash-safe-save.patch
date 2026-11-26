@@ -1,0 +1,107 @@
+Subject: [PATCH] wineserver: crash-safe registry save (fsync + .bak) and .bak restore at load
+
+Target tree: ~/orbis-win-host-bootstrap/native247-wine-source (working tree,
+server/registry.c sha256 596acd84f3153dbf059cb0b9e59e9be27b2c7807fee3eb48be0d0ee031fc169c).
+That file compiles byte-for-byte to native248-build-wine/build/server/registry.o
+(sha256 96b2426ab39e575e6674d3da6dbc64ccbb9023b777efafdafe47b55294f267f6), the registry
+object of the wineserver.prx used by JkFlow 1.00 (e1e793dc...) and MW Bench (46edbb33...).
+Also applies (offset -29) to vanilla ~/orbis-win-host-bootstrap/wine-source (490f6d5).
+
+save_branch: fflush + fsync(fd) before the rename, keep the previous valid file as
+<name>.bak (rename; link() is a stub on the console), fsync(config_dir_fd) after.
+load_init_registry_from_file: if <name> is missing/empty/has no "WINE REGISTRY Version 2"
+header and <name>.bak has it, load the .bak and log "registry: restored <name> from .bak".
+
+Apply from the tree root: git apply 0001-wineserver-registry-crash-safe-save.patch
+                      (or: patch -p1 < 0001-wineserver-registry-crash-safe-save.patch)
+---
+diff --git a/server/registry.c b/server/registry.c
+index 364b72e..fc006f6 100644
+--- a/server/registry.c
++++ b/server/registry.c
+@@ -1748,14 +1748,45 @@ static void load_registry( struct key *key, obj_handle_t handle )
+     }
+ }
+ 
++/* name of the copy of a registry file that save_branch keeps */
++static const char *backup_name( const char *filename, char *buffer, size_t size )
++{
++    int len = snprintf( buffer, size, "%s.bak", filename );
++    return (len > 0 && (size_t)len < size) ? buffer : NULL;
++}
++
++/* does the file exist and start with the registry header? */
++static int registry_file_valid( const char *filename )
++{
++    char line[32];
++    FILE *f;
++    int ret = 0;
++
++    if (!filename || !(f = fopen( filename, "r" ))) return 0;
++    if (fgets( line, sizeof(line), f )) ret = !strncmp( line, "WINE REGISTRY Version 2", 23 );
++    fclose( f );
++    return ret;
++}
++
+ /* load one of the initial registry files */
+ static int load_init_registry_from_file( const char *filename, struct key *key )
+ {
++    const char *source = filename;
++    char bak[64];
+     FILE *f;
+ 
+-    if ((f = fopen( filename, "r" )))
++    /* a crash while saving can leave the file empty or missing (seen on the
++     * PS4 after a kernel panic): load the previous copy kept by save_branch */
++    if (!registry_file_valid( filename ) &&
++        registry_file_valid( backup_name( filename, bak, sizeof(bak) )))
+     {
+-        load_keys( key, filename, f, 0 );
++        fprintf( stderr, "registry: restored %s from .bak\n", filename );
++        source = bak;
++    }
++
++    if ((f = fopen( source, "r" )))
++    {
++        load_keys( key, source, f, 0 );
+         fclose( f );
+         if (get_error() == STATUS_NOT_REGISTRY_FILE)
+         {
+@@ -2045,8 +2076,8 @@ static void save_registry( struct key *key, obj_handle_t handle )
+ static int save_branch( struct key *key, const char *filename )
+ {
+     struct stat st;
+-    char tmp[32];
+-    int fd, count = 0, ret = 0;
++    char tmp[32], bak[64];
++    int fd, count = 0, ret = 0, synced, backed_up;
+     FILE *f;
+ 
+     if (!(key->flags & KEY_DIRTY))
+@@ -2097,12 +2128,23 @@ static int save_branch( struct key *key, const char *filename )
+     }
+ 
+     save_all_subkeys( key, f );
+-    ret = !fclose(f);
++    /* the data must be on disk before the rename below makes it the registry:
++     * without this a kernel panic on the PS4 left 0-byte .reg files */
++    synced = !fflush( f ) && !fsync( fd );
++    ret = !fclose(f) && (synced || !tmp[0]);
+ 
+     if (tmp[0])
+     {
+-        /* if successfully written, rename to final name */
+-        if (ret) ret = !rename( tmp, filename );
++        /* if successfully written, rename to final name, keeping the previous
++         * good file as <name>.bak (link() is a stub on the console: rename it) */
++        if (ret)
++        {
++            backed_up = registry_file_valid( filename ) &&
++                        backup_name( filename, bak, sizeof(bak) ) && !rename( filename, bak );
++            ret = !rename( tmp, filename );
++            if (!ret && backed_up) rename( bak, filename );
++            if (ret) fsync( config_dir_fd );  /* make the renames durable */
++        }
+         if (!ret) unlink( tmp );
+     }
+ 

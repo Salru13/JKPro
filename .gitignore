@@ -1,0 +1,64 @@
+# JKPro: no game files, no Konami files, no extracted packages, no private evidence.
+/game/
+/games/
+/refs/
+/evidence/
+/build/
+*.pkg
+*.exe
+*.dll
+*.afs
+*.img
+*.cpk
+*.bin
+*.iso
+*.mdf
+*.mds
+*.7z
+*.zip
+*.rar
+__pycache__/
+*.pyc
+# Local Claude/IDE state
+.claude/settings.local.json
+.claude/worktrees/
+/.superpowers/
+# launcher build outputs; NFS-era golden PNGs are replaced by JKPro goldens (Task 8)
+/launcher/build/
+/launcher/build-baseline.log
+/launcher/golden/*.png
+
+# release audit 2026-11-25: never commit game data, keys or logs
+*.dat
+*.key
+*.pem
+.env
+*.reg
+!bench/jkpes13.reg
+*.log
+!engine/client/candidate/tests-fix.log
+
+# YouTube video: footage, music and renders stay local (scripts and notes are tracked)
+/docs/youtube/in/
+/docs/youtube/out/
+/docs/youtube/audio/
+/docs/youtube/stills/
+*.mp4
+*.mov
+*.mkv
+*.mp3
+*.wav
+*.m4a
+
+# Internal work files (kept locally, not in the public layout)
+/.coordination/
+/START-BRIEF.md
+/PLAN.md
+/FINDINGS.md
+/LESSONS.md
+/research/
+/bench/
+/tools/
+/docs/superpowers/
+/docs/status/
+/docs/youtube/

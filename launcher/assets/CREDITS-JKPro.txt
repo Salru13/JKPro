@@ -1,0 +1,14 @@
+# JKPRO
+XxXJoker13XxX	JKPro: launcher and PS4 port	https://github.com/Salru13/JKPro
+
+# Runtime
+XxXJoker13XxX	JkFlow runtime: Wine on PS4, native DXVK server	https://github.com/Salru13/JkFlow
+Philip Rebohle and contributors	DXVK (zlib licence)	https://github.com/doitsujin/dxvk
+The Wine project	Wine (LGPL)	https://www.winehq.org
+SiSTRo and the GoldHEN team	GoldHEN	https://github.com/GoldHEN/GoldHEN
+
+# The player's own mods (not shipped)
+juce	Kitserver 13
+
+# Font
+Canonical	Ubuntu Sans (Ubuntu Font Licence 1.0)

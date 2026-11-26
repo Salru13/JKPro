@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JKPro Launcher Mockups</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Rev 2 (PES 2013, lead decisions 2026-11-25). Each screen is a 1920x1080 TV frame; 1px@1080p = 0.0521cqw.
+   Built for the JK4SPEED software renderer: flat fills, one static background, solid amber focus, no blur/glow. */
+:root{
+  --night:#0d1a24; --stand:#152634; --stand-2:#1d3344; --line:#2b4559;
+  --chalk:#eef3f6; --dim:#93a9b8; --flood:#f3b640; --ok:#4cc38a; --bad:#e5604f;
+  --display:"Barlow Condensed","Arial Narrow",sans-serif; --body:"Inter",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{margin:0;background:#081118;color:var(--chalk);font-family:var(--body);padding-block:32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.doc{max-width:1280px;margin:0 auto;display:grid;gap:40px}
+.doc>header h1{font-family:var(--display);font-size:44px;margin:0;letter-spacing:.02em}
+.doc>header p{color:var(--dim);max-width:72ch;line-height:1.5;margin:.4em 0 0}
+figure{margin:0;display:grid;gap:10px}
+figcaption{color:var(--dim);font-size:15px;line-height:1.45;max-width:90ch}
+figcaption b{color:var(--chalk);font-family:var(--display);font-size:22px;letter-spacing:.03em;margin-right:8px}
+.tv{container-type:inline-size;width:100%;aspect-ratio:16/9;max-width:100%;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.scr{position:relative;width:100%;height:100%;background:var(--night);padding:5cqw 5cqw 0;display:flex;flex-direction:column;font-size:1.5625cqw;overflow:hidden}
+/* our own motif: pitch lines (centre circle + halfway line), static */
+.scr::before{content:"";position:absolute;right:-9cqw;top:50%;width:36cqw;height:36cqw;transform:translateY(-50%);border:.16cqw solid #1b3040;border-radius:50%}
+.scr::after{content:"";position:absolute;right:8.8cqw;top:0;bottom:0;border-left:.16cqw solid #1b3040}
+.scr>*{position:relative;z-index:1}
+.top{display:flex;align-items:center;justify-content:space-between;color:var(--dim);font-size:1.35cqw}
+.brand{font-family:var(--display);font-weight:700;font-size:2.6cqw;color:var(--chalk);letter-spacing:.06em}
+.brand span{color:var(--flood)}
+.crumb{font-family:var(--display);font-size:2.6cqw;color:var(--chalk);font-weight:600;letter-spacing:.03em}
+.crumb small{color:var(--dim);font-weight:500;margin-left:.6em}
+.status{display:flex;gap:2cqw}
+.hints{margin-top:auto;display:flex;gap:2.6cqw;justify-content:flex-end;padding:1.6cqw 0 2.8cqw;color:var(--dim);font-size:1.45cqw;border-top:1px solid var(--line)}
+.hints span{display:inline-flex;align-items:center;gap:.55cqw}
+.b{display:inline-grid;place-items:center;min-width:2.1cqw;height:2.1cqw;padding:0 .4cqw;border-radius:1.1cqw;background:var(--stand-2);font-size:1.2cqw;color:var(--chalk);font-weight:600;font-style:normal}
+.b.x{color:#8fb6ff}.b.o{color:#ff8f8f}.b.t{color:#7fe0c0}.b.s{color:#f0a6e0}
+/* home */
+.home{display:grid;grid-template-columns:38cqw 1fr;gap:5cqw;margin-top:4cqw}
+.card{background:var(--stand);border:1px solid var(--line);border-radius:.8cqw;padding:2.4cqw;display:grid;gap:1.2cqw;align-content:start}
+.card .name{font-family:var(--display);font-weight:700;font-size:6cqw;line-height:.9}
+.card .path{color:var(--dim);font-size:1.35cqw;font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:.8cqw;flex-wrap:wrap}
+.chip{font-size:1.25cqw;font-weight:600;padding:.35cqw 1cqw;border-radius:2cqw;background:#173a2c;color:var(--ok)}
+.chip.warn{background:#3a3016;color:var(--flood)}
+.chip.mute{background:var(--stand-2);color:var(--dim)}
+.chip.bad{background:#3c1d1a;color:var(--bad)}
+.switch{display:flex;justify-content:space-between;color:var(--dim);font-size:1.3cqw;border-top:1px solid var(--line);padding-top:1cqw}
+.menu{display:grid;gap:.8cqw;align-content:start}
+.mi{font-family:var(--display);font-size:3.4cqw;font-weight:600;padding:.4cqw 1.8cqw;border-radius:.5cqw;color:var(--dim);letter-spacing:.04em;display:flex;justify-content:space-between;align-items:center}
+.mi small{font-family:var(--body);font-size:1.3cqw;font-weight:500;letter-spacing:0}
+.mi.f{background:var(--flood);color:#1a1405}
+.mi.f small{color:#4a3a10}
+.explain{color:var(--dim);font-size:1.5cqw;margin-top:1cqw;max-width:44cqw;line-height:1.4}
+/* lists / panels */
+.split{display:grid;grid-template-columns:32cqw 1fr;gap:4cqw;margin-top:3.4cqw;min-height:0}
+.panel{background:var(--stand);border:1px solid var(--line);border-radius:.8cqw;padding:2.2cqw 2.6cqw;display:grid;gap:1cqw;align-content:start}
+.panel h3{margin:0;font-family:var(--display);font-size:2.4cqw;font-weight:600}
+.steps{display:grid;gap:.9cqw;margin-top:3cqw;max-width:70cqw}
+.step{display:grid;grid-template-columns:3cqw 1fr auto;align-items:center;font-size:1.9cqw;padding:.5cqw 0}
+.step .ic{font-weight:700}
+.step.done .ic{color:var(--ok)} .step.done{color:var(--dim)}
+.step.now{color:var(--chalk)} .step.now .ic{color:var(--flood)}
+.step.wait{color:#5d7486}
+.step.fail .ic{color:var(--bad)} .step.fail{color:var(--chalk)}
+.step .r{font-size:1.4cqw;color:var(--dim);font-variant-numeric:tabular-nums}
+.bar{height:1cqw;border-radius:1cqw;background:var(--stand-2);overflow:hidden;max-width:70cqw;margin-top:1.6cqw}
+.bar i{display:block;height:100%;width:48%;background:var(--flood)}
+.barlbl{display:flex;justify-content:space-between;color:var(--dim);font-size:1.4cqw;max-width:70cqw;margin-top:.6cqw;font-variant-numeric:tabular-nums}
+.rows{margin-top:2.6cqw;display:grid;gap:.5cqw;max-width:76cqw}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;padding:.9cqw 1.8cqw;border-radius:.5cqw;font-size:1.9cqw}
+.row.f{background:var(--stand-2);outline:.2cqw solid var(--flood)}
+.row.lock{color:var(--dim)}
+.val{display:flex;align-items:center;gap:1.2cqw;font-weight:600;font-variant-numeric:tabular-nums}
+.val .arr{color:var(--dim)}
+.row.lock .val{font-weight:500}
+.lk{font-size:1.15cqw;border:1px solid var(--line);padding:.1cqw .7cqw;border-radius:1cqw}
+.note{color:var(--dim);font-size:1.4cqw;margin-top:1.2cqw}
+.snap{display:grid;grid-template-columns:16cqw 1fr 9cqw;align-items:center;padding:.8cqw 1.6cqw;border-radius:.5cqw;font-size:1.65cqw;font-variant-numeric:tabular-nums}
+.snap .why{color:var(--dim)}
+.snap .sz{text-align:right;color:var(--dim)}
+.drop{display:flex;align-items:center;gap:1.2cqw;background:#3a3016;border:1px solid #6b5520;padding:1cqw 1.6cqw;border-radius:.6cqw;font-size:1.55cqw;margin-top:2.4cqw}
+.drop b{color:var(--flood)}
+.dim{position:absolute;inset:0;background:#070d12;opacity:.97;display:grid;place-items:center;z-index:2}
+.dlg{width:64cqw;background:var(--stand);border:1px solid var(--line);border-radius:1cqw;padding:3cqw 3.4cqw;display:grid;gap:1.3cqw;position:relative}
+.dlg h2{margin:0;font-family:var(--display);font-size:3.4cqw;font-weight:700}
+.dlg p{margin:0;line-height:1.45;color:var(--dim);font-size:1.7cqw}
+.dlg p.ok{color:var(--ok)}
+.dlg code{font-family:ui-monospace,Consolas,monospace;color:var(--chalk);font-size:1.5cqw;background:var(--night);padding:.1cqw .5cqw;border-radius:.3cqw}
+.btns{display:flex;gap:1.4cqw;margin-top:.8cqw;flex-wrap:wrap}
+.btn{font-family:var(--display);font-size:2.2cqw;font-weight:600;padding:.6cqw 2cqw;border-radius:.5cqw;border:1px solid var(--line);color:var(--dim);display:inline-flex;gap:.8cqw;align-items:center}
+.btn.f{background:var(--flood);color:#1a1405;border-color:var(--flood)}
+.code{position:absolute;right:2cqw;top:1.6cqw;font-size:1.1cqw;color:var(--dim);font-variant-numeric:tabular-nums}
+.shelf{display:flex;gap:2.2cqw;margin-top:4.6cqw;align-items:flex-end}
+.shelf.dimmed{opacity:.35}
+.gt{width:19cqw;aspect-ratio:3/4;background:var(--stand);border:.2cqw solid var(--line);border-radius:.8cqw;padding:1.6cqw;display:flex;flex-direction:column;justify-content:space-between}
+.gt.f{width:23cqw;border:.35cqw solid var(--flood)}
+.gt.off{opacity:.5}
+.gt.add{background:transparent;border-style:dashed}
+.gt-top{display:flex;gap:.6cqw;flex-wrap:wrap;min-height:2cqw}
+.pitch{align-self:center;width:62%;aspect-ratio:1;border:.18cqw solid #2f4a5e;border-radius:50%;position:relative}
+.pitch::after{content:"";position:absolute;left:50%;top:-25%;bottom:-25%;border-left:.18cqw solid #2f4a5e}
+.plus{align-self:center;font-family:var(--display);font-size:9cqw;color:var(--line);line-height:1}
+.gname{font-family:var(--display);font-weight:700;font-size:4.2cqw;line-height:.95}
+.gt.f .gname{font-size:5cqw}
+.gname.sm{font-size:3cqw}
+.gsub{color:var(--dim);font-size:1.25cqw;margin-top:.5cqw}
+.info{margin-top:2.2cqw;color:var(--dim);font-size:1.5cqw}
+.info b{color:var(--chalk)}
+.gmenu{position:absolute;left:34cqw;top:11cqw;width:34cqw;background:var(--stand);border:1px solid var(--line);border-radius:1cqw;padding:2cqw;display:grid;gap:.7cqw;z-index:3}
+.gmenu-h{color:var(--dim);font-size:1.4cqw;margin-bottom:.6cqw}
+@media (max-width:600px){.doc>header h1{font-size:32px}}
+</style>
+</head>
+<body>
+<div class="doc">
+<header>
+  <h1>JKPro launcher: PES 2013 screens</h1>
+  <p>Rev 2, following the project lead's decisions of 2026-11-25. Home is a shelf of game tiles that grows as games are added. ✕ plays the focused game and △ opens its menu (PLAY · PATCH · SETTINGS · SAVE GAMES). Each game folder has its own profile, and PATCH is required. 1920×1080 TV, pad only, flat fills for the software renderer. Only JKPro's own art: no publisher logos or screenshots.</p>
+</header>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="brand">JK<span>PRO</span></div><div class="status"><span>1 game found</span><span>1 controller</span></div></div>
+  <div class="shelf">
+    <div class="gt f"><div class="gt-top"><span class="chip">Ready</span></div><div class="pitch"></div><div><div class="gname">PES 2013</div><div class="gsub">/data/JKPro/PES13</div></div></div>
+  </div>
+  <div class="info"><b>PES 2013</b> · v1.04 · 1280×720 · Medium · 60 FPS · saves backed up today 18:02</div>
+  <div class="hints"><span><i class="b x">✕</i>Play</span><span><i class="b t">△</i>Patch &amp; options</span><span><i class="b s">□</i>Help</span></div>
+</div></div>
+<figcaption><b>Home: game shelf (JKPro 1.0)</b>1.0 is PES 2013 only: the shelf shows the PES13 folder's tile. ✕ starts the game, or runs PATCH first if it isn't patched. △ opens the game's menu. Other folders under /data/JKPro are not shown. The real rendered screens are in design/screens/.</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="brand">JK<span>PRO</span></div><div class="status"><span>4 games found</span><span>1 controller</span></div></div>
+  <div class="shelf">
+    <div class="gt"><div class="gt-top"><span class="chip">Ready</span></div><div class="pitch"></div><div><div class="gname">PES 2013</div><div class="gsub">PES13</div></div></div>
+    <div class="gt f"><div class="gt-top"><span class="chip warn">Needs PATCH</span></div><div class="pitch"></div><div><div class="gname">PES 6</div><div class="gsub">PES6</div></div></div>
+    <div class="gt"><div class="gt-top"><span class="chip">Ready</span><span class="chip mute">Modded</span></div><div class="pitch"></div><div><div class="gname">PES 2013</div><div class="gsub">PES13-PESEdit</div></div></div>
+    <div class="gt off"><div class="gt-top"><span class="chip mute">Not supported yet</span></div><div class="pitch"></div><div><div class="gname">PES 2010</div><div class="gsub">PES10</div></div></div>
+  </div>
+  <div class="info"><b>PES 6</b> · first time: press ✕ and JKPro patches it, then starts it</div>
+  <div class="hints"><span><i class="b x">✕</i>Patch &amp; play</span><span><i class="b t">△</i>Patch &amp; options</span><span><i class="b s">□</i>Help</span></div>
+</div></div>
+<figcaption><b>Later release (not in 1.0): with more games</b>The same screen grows as games are added: PES 6, a second PES 2013 with a patch, and so on. A game JKPro recognises but can't run yet (PES 2010 here) shows as "Not supported yet" and is never touched. Left and right move between tiles.</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="brand">JK<span>PRO</span></div><div class="status"><span>1 game found</span></div></div>
+  <div class="shelf dimmed">
+    <div class="gt f"><div class="gt-top"><span class="chip">Ready</span></div><div class="pitch"></div><div><div class="gname">PES 2013</div><div class="gsub">/data/JKPro/PES13</div></div></div>
+  </div>
+  <div class="gmenu">
+    <div class="gmenu-h">PES 2013 · PES13</div>
+    <div class="mi f">PLAY</div><div class="mi">PATCH <small>done</small></div><div class="mi">SETTINGS</div><div class="mi">SAVE GAMES</div>
+  </div>
+  <div class="hints"><span><i class="b x">✕</i>Select</span><span><i class="b o">○</i>Back</span></div>
+</div></div>
+<figcaption><b>△ Game menu</b>Opens on top of the shelf for the focused game: PLAY, PATCH, SETTINGS and SAVE GAMES. Everything in it belongs to that game only. ○ goes back to the shelf.</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="crumb">PATCH<small>PES13</small></div><div class="status"><span>Step 3 of 6</span></div></div>
+  <div class="steps">
+    <div class="step done"><span class="ic">✓</span><span>Check game folder</span><span class="r">PES 2013 v1.04</span></div>
+    <div class="step done"><span class="ic">✓</span><span>Prepare Windows layer</span><span class="r">first time</span></div>
+    <div class="step now"><span class="ic">▸</span><span>Install JKPro files</span><span class="r">d3d9.dll</span></div>
+    <div class="step wait"><span class="ic">·</span><span>Import registry file</span><span class="r"></span></div>
+    <div class="step wait"><span class="ic">·</span><span>Write settings</span><span class="r"></span></div>
+    <div class="step wait"><span class="ic">·</span><span>Check and record</span><span class="r"></span></div>
+  </div>
+  <div class="bar"><i></i></div>
+  <div class="barlbl"><span>Your game files are not deleted. Anything replaced is backed up.</span><span>162 of 338 MB</span></div>
+  <div class="hints"><span>Don't turn off the PS4</span></div>
+</div></div>
+<figcaption><b>PATCH running</b>Six named steps, real MB progress, and no frozen "0 of N". If the PS4 loses power, PATCH finishes the next time it runs.</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="crumb">PATCH<small>PES13</small></div></div>
+  <div class="dim"><div class="dlg">
+    <span class="code">E210</span>
+    <h2>Registry file needed</h2>
+    <p>PES 2013 needs the registry file (.reg) from your PC. Without it, the game says it "has not been installed".</p>
+    <p>Put the .reg file (for example <code>PES_2013_Registry_Fix.reg</code>) in <code>/data/JKPro/PES13/</code>, then press PATCH again.</p>
+    <p class="ok">Nothing was changed. Steps 1–3 are kept; PATCH continues from step 4.</p>
+    <div class="btns"><span class="btn f"><i class="b x">✕</i>OK</span><span class="btn"><i class="b s">□</i>Help: the registry file</span></div>
+  </div></div>
+</div></div>
+<figcaption><b>PATCH stopped: .reg missing</b>The message says what is missing, where to put the file, and that nothing was changed. E211 uses the same layout, saying "The .reg file has no code value".</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="crumb">SETTINGS<small>PES 2013 · PES13</small></div><div class="status"><span>Only this game folder</span></div></div>
+  <div class="rows">
+    <div class="row f"><span>Resolution</span><span class="val"><span class="arr">◀</span>1280 × 720<span class="arr">▶</span> <span class="lk">provisional</span></span></div>
+    <div class="row"><span>Picture quality</span><span class="val">Medium <span class="lk">provisional</span></span></div>
+    <div class="row lock"><span>Display</span><span class="val">Full screen <span class="lk">fixed on PS4</span></span></div>
+    <div class="row lock"><span>Frame rate</span><span class="val">60 FPS <span class="lk">game speed follows it</span></span></div>
+    <div class="row lock"><span>Controller</span><span class="val">PS4 pad (XInput) <span class="lk">fixed</span></span></div>
+    <div class="row"><span>Show FPS</span><span class="val">Off</span></div>
+    <div class="row"><span>Logs &amp; support</span><span class="val">▸</span></div>
+  </div>
+  <div class="note">Saved right away and written to the game at the next PLAY. PES13-PESEdit keeps its own settings.</div>
+  <div class="hints"><span><i class="b x">◀ ▶</i>Change</span><span><i class="b t">△</i>Defaults</span><span><i class="b o">○</i>Back</span></div>
+</div></div>
+<figcaption><b>Settings</b>Only the rows that really change something can be changed. Locked rows say why. Defaults are 1280×720 and Medium, marked provisional until the kernel-panic case closes. Then 1920×1080 becomes the default. Vsync is always on and is not a setting.</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="crumb">SAVE GAMES<small>PES 2013 · PES13</small></div><div class="status"><span>Drop files in /data/JKPro/Saves/PES13/Import</span></div></div>
+  <div class="drop"><b>3 files ready to import</b> from Saves/PES13/Import: OPTION.bin · EDIT.bin · save (2 files)</div>
+  <div class="split" style="margin-top:2.2cqw">
+    <div class="menu"><div class="mi f">Load saves</div><div class="mi">Restore a backup</div><div class="mi">Copy from PES13-PESEdit</div><div class="mi">Export to USB</div></div>
+    <div class="panel">
+      <h3>In this folder now</h3>
+      <div class="snap"><span>Option file</span><span class="why">OPTION.bin</span><span class="sz">Today 17:58</span></div>
+      <div class="snap"><span>Edit data</span><span class="why">EDIT.bin</span><span class="sz">Today 17:58</span></div>
+      <div class="snap"><span>Master League</span><span class="why">save/</span><span class="sz">Today 18:40</span></div>
+      <div class="note">Backups: last 10 plays kept · latest before PLAY today 18:02</div>
+    </div>
+  </div>
+  <div class="hints"><span><i class="b x">✕</i>Select</span><span><i class="b o">○</i>Back</span></div>
+</div></div>
+<figcaption><b>Save games</b>Copy-paste OPTION.bin, EDIT.bin and the save folder from a PC or another PES 2013 version into Saves/PES13/Import (or USB JKPro/saves). JKPro notices them and offers Load saves.</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="crumb">SAVE GAMES<small>PES13</small></div></div>
+  <div class="dim"><div class="dlg">
+    <h2>Load these saves?</h2>
+    <p>OPTION.bin, EDIT.bin and 2 save files will replace the saves PES13 uses now.</p>
+    <p class="ok">Your current saves are backed up first. You can restore them at any time under Restore a backup.</p>
+    <div class="btns"><span class="btn f"><i class="b x">✕</i>Load saves</span><span class="btn"><i class="b o">○</i>Cancel</span></div>
+  </div></div>
+</div></div>
+<figcaption><b>Load saves</b>One confirmation. Nothing is overwritten without a backup, and the backup is listed as "before import".</figcaption>
+</figure>
+
+<figure>
+<div class="tv"><div class="scr">
+  <div class="top"><div class="brand">JK<span>PRO</span></div></div>
+  <div class="dim"><div class="dlg">
+    <span class="code">E101</span>
+    <h2>PES 2013 didn't start</h2>
+    <p>The game stopped before showing its first picture. Your saves are safe (backup today 18:02).</p>
+    <p class="ok">Nothing was changed.</p>
+    <div class="btns"><span class="btn f"><i class="b x">✕</i>Try again</span><span class="btn"><i class="b s">□</i>Save support bundle</span><span class="btn"><i class="b o">○</i>Home</span></div>
+  </div></div>
+</div></div>
+<figcaption><b>Didn't start</b>The JK4SPEED pattern. The support bundle goes to Logs/support (and USB), without saves or the .reg file. "Start with safe settings" will be added once the panic case shows which settings are safe.</figcaption>
+</figure>
+</div>
+</body>
+</html>

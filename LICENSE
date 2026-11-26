@@ -1,0 +1,39 @@
+JKPro for PS4
+
+Our own code
+------------
+The code in this repository (the JKPro launcher in launcher/, the title build
+and packaging scripts in launcher/jkflow/, the engine patches and tools in
+engine/) is Copyright (c) 2026 XxXJoker13XxX and contributors, and licensed
+under the GNU Lesser General Public License, version 2.1 or (at your option)
+any later version. See LICENSES/LGPL-2.1.txt.
+
+Third-party code in this repository
+-----------------------------------
+launcher/third_party/: TweetNaCl, public domain.
+
+Native DXVK
+-----------
+The native renderer (sce_module/dxvknative.prx) and its clients
+(jkpro-files/d3d9.dll, jkpro-files/d3d9-pe.dll) ship in the package only.
+Our changes to DXVK: Copyright (c) 2026 XxXJoker13XxX. Free to use, copy,
+change and redistribute, if every release names the author with the line
+"Native DXVK by XxXJoker13XxX". Full terms: LICENSES/JkFlow-Native-DXVK.txt.
+The DXVK base stays zlib/libpng (LICENSES/DXVK-zlib.txt).
+
+Not in this repository
+----------------------
+No game files and no Konami files. No Kitserver files: Kitserver 13 is the
+player's own mod under its own licence, which allows redistribution of
+unmodified binaries only. JKPro's optional face fix applies JKPro's own
+bytes to the player's own fserv.dll on the console and keeps the original.
+
+Name and badge
+--------------
+The JKPro name and icon are not covered by the code licence. Forks are
+welcome under the LGPL, but must use their own name and must not present
+themselves as official JKPro builds. The "Official Build" badge is shown only
+for packages signed with the release key.
+
+See THIRD_PARTY.md, LICENSES.md and CREDITS.md for everything the package
+uses and who made it.

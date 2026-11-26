@@ -1,0 +1,232 @@
+PASS dxn protocol round trip
+PASS ff matrix = DXVK Matrix4 (1000 random)
+PASS dxn client util
+ok   ring_no_overwrite
+ok   ref_slots
+ok   sub_cache
+ok   shadow_defaults
+ok   state_block_apply
+ok   state_block_recorded
+ok   decode_exception
+ok   ff_defaults
+ok   state_block_ff
+ok   state_block_record_stream
+PASS dxn review items
+ok   ring_no_overwrite
+ok   ref_slots
+ok   sub_cache
+ok   shadow_defaults
+ok   state_block_apply
+ok   state_block_recorded
+ok   decode_exception
+ok   ff_defaults
+ok   state_block_ff
+ok   state_block_record_stream
+PASS dxn review items
+ok   valid_stream
+ok   use_after_release
+ok   wrong_kind
+ok   upload_bounds
+ok   readback_query
+ok   view_task
+ok   capture_file
+ok   fixed_function
+PASS dxn validator
+~/orbis-win-host-bootstrap/native286-dxvk259/candidate/src/util/sha1/sha1.c:136:8: runtime error: null pointer passed as argument 2, which is declared to never be null
+  <home>/OneDrive/Documents/ChatGPT/Ps4 BLUR - PC project/investigations/evidence/benchmark/Blur.dxvk-cache.pe: 611919 bytes, version 10, 2661 entries (2661 graphics), stop=end, used 611919 bytes
+  691 truncated and 300 corrupted copies parsed
+PASS dxn state cache reader (0 failure(s))
+  allocations: 42 via memalign(32), 3 via malloc; live at end 0
+PASS dxn aligned new (0 failure(s))
+PASS aligned new control fails without the fix (fault caught, exit 87)
+PASS beat (0 failures)
+PASS knobs (0 failures)
+PASS vp synth (0 failures)
+PASS grab sched (0 failures)
+PASS dxn vp pool (0 failure(s))
+PASS dxn vp pool (0 failure(s))
+PASS dxn vp owner (0 failure(s))
+  IDirect3DDevice9Ex           134 slots ok
+  IDirect3DVertexBuffer9        14 slots ok
+  IDirect3DIndexBuffer9         14 slots ok
+  IDirect3DSurface9             17 slots ok
+  IDirect3DTexture9             22 slots ok
+  IDirect3DCubeTexture9         22 slots ok
+  IDirect3DVolumeTexture9       22 slots ok
+  IDirect3DVolume9              11 slots ok
+  IDirect3DVertexShader9         5 slots ok
+  IDirect3DPixelShader9          5 slots ok
+  IDirect3DVertexDeclaration9    5 slots ok
+  IDirect3DQuery9                8 slots ok
+  IDirect3DStateBlock9           6 slots ok
+  IDirect3DSwapChain9           10 slots ok
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=1 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=2 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=3 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=5 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=7 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=13 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=14 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=15 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=16 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=17 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=18 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=19 hr=0x8876086a (real device)
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=1 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=2 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=3 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=4 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=5 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=7 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=13 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=14 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=15 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=16 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=17 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=18 hr=0x8876086a
+  log: BLUR_DXN_UNSUPPORTED CreateQuery type=19 hr=0x8876086a
+PASS test_client_vtables (0 failure(s))
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1226
+PASS test_client_server (0 failure(s))
+  log: BLUR_DXN_MENU frame_ms wall=1.76758 client_blocked=1.7586 game=0.00897763 client_self=0 game_outside_client=0.00897763 calls=8 max_ms=3.2221 over36=0 over50=0 interval=1 filtered=0 fps=565.745
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.72129ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.00041015ms] ring_poll yields=2753.08 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.73791 client_blocked=1.73049 game=0.00741355 client_self=0 game_outside_client=0.00741355 calls=8 max_ms=3.15644 over36=0 over50=0 interval=1 filtered=0 fps=575.405
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.73044ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000386683ms] ring_poll yields=2764.9 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.66509 client_blocked=1.65813 game=0.00695987 client_self=0 game_outside_client=0.00695987 calls=8 max_ms=3.1434 over36=0 over50=0 interval=1 filtered=0 fps=600.569
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.65807ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000370133ms] ring_poll yields=2642.6 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.73001 client_blocked=1.71874 game=0.0112679 client_self=0 game_outside_client=0.0112679 calls=8 max_ms=4.02083 over36=0 over50=0 interval=1 filtered=0 fps=578.031
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.71925ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000480817ms] ring_poll yields=2252.37 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.70847 client_blocked=1.70098 game=0.0074937 client_self=0 game_outside_client=0.0074937 calls=8 max_ms=3.04561 over36=0 over50=0 interval=1 filtered=0 fps=585.319
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.70089ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000419633ms] ring_poll yields=2661.87 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.63048 client_blocked=1.6233 game=0.00718095 client_self=0 game_outside_client=0.00718095 calls=8 max_ms=3.12843 over36=0 over50=0 interval=1 filtered=0 fps=613.317
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.62321ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.0003851ms] ring_poll yields=2746.83 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.58166 client_blocked=1.57512 game=0.0065424 client_self=0 game_outside_client=0.0065424 calls=8 max_ms=3.24824 over36=0 over50=0 interval=1 filtered=0 fps=632.245
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.57507ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000376983ms] ring_poll yields=2424.58 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.72405 client_blocked=1.71361 game=0.0104341 client_self=0 game_outside_client=0.0104341 calls=8 max_ms=3.24306 over36=0 over50=0 interval=1 filtered=0 fps=580.031
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.71357ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.00057705ms] ring_poll yields=2192 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.88249 client_blocked=1.86615 game=0.0163418 client_self=0 game_outside_client=0.0163418 calls=8 max_ms=3.43339 over36=0 over50=0 interval=1 filtered=0 fps=531.211
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.86759ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.00082675ms] ring_poll yields=2272.1 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.76884 client_blocked=1.75848 game=0.0103554 client_self=0 game_outside_client=0.0103554 calls=8 max_ms=3.17854 over36=0 over50=0 interval=1 filtered=0 fps=565.343
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.75843ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000516717ms] ring_poll yields=2472.98 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1226
+PASS test_client_server (0 failure(s))
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1226
+PASS test_client_server (0 failure(s))
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1226
+PASS test_client_server (0 failure(s))
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1226
+PASS test_client_server (0 failure(s))
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1229
+PASS test_client_server (0 failure(s))
+  log: BLUR_DXN_MENU frame_ms wall=1.75685 client_blocked=1.7486 game=0.00825053 client_self=0 game_outside_client=0.00825053 calls=4 max_ms=3.64568 over36=0 over50=0 interval=1 filtered=4 fps=569.2
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.71201ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.0004019ms] ring_poll yields=2744.7 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.73571 client_blocked=1.72813 game=0.00757897 client_self=0 game_outside_client=0.00757897 calls=4 max_ms=3.24706 over36=0 over50=0 interval=1 filtered=4 fps=576.133
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.72808ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000427783ms] ring_poll yields=2745.25 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.68088 client_blocked=1.67269 game=0.00818785 client_self=0 game_outside_client=0.00818785 calls=4 max_ms=3.13665 over36=0 over50=0 interval=1 filtered=4 fps=594.927
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.67311ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000418983ms] ring_poll yields=2644.52 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.70649 client_blocked=1.69875 game=0.00773983 client_self=0 game_outside_client=0.00773983 calls=4 max_ms=3.23353 over36=0 over50=0 interval=1 filtered=4 fps=585.999
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.69867ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000447033ms] ring_poll yields=2870.33 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.74587 client_blocked=1.73674 game=0.00913295 client_self=0 game_outside_client=0.00913295 calls=4 max_ms=3.10712 over36=0 over50=0 interval=1 filtered=4 fps=572.78
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.73673ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.0005197ms] ring_poll yields=2501.27 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.6085 client_blocked=1.5993 game=0.00919878 client_self=0 game_outside_client=0.00919878 calls=4 max_ms=3.20657 over36=0 over50=0 interval=1 filtered=4 fps=621.697
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.59931ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000443767ms] ring_poll yields=2244 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.60599 client_blocked=1.59855 game=0.00744005 client_self=0 game_outside_client=0.00744005 calls=4 max_ms=3.18457 over36=0 over50=0 interval=1 filtered=4 fps=622.67
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.59853ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.0004047ms] ring_poll yields=2468.3 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.69089 client_blocked=1.68167 game=0.00922335 client_self=0 game_outside_client=0.00922335 calls=4 max_ms=3.18706 over36=0 over50=0 interval=1 filtered=4 fps=591.403
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.68165ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000489917ms] ring_poll yields=2334.72 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.82705 client_blocked=1.81974 game=0.0073109 client_self=0 game_outside_client=0.0073109 calls=4 max_ms=3.13316 over36=0 over50=0 interval=1 filtered=4 fps=547.331
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.81972ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000426ms] ring_poll yields=2774.58 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU frame_ms wall=1.77482 client_blocked=1.76659 game=0.00822835 client_self=0 game_outside_client=0.00822835 calls=4 max_ms=3.1757 over36=0 over50=0 interval=1 filtered=4 fps=563.437
+  log: BLUR_DXN_MENU waits per frame: present_prev=1/1.76656ms grtd=0/0ms rt_lock_readbacks=0 rt_async=on/taken=0/kept=0 rb_consumer_waits=0/0ms rb_never_read=0 (lock same_frame=0 later=0 never=0 calls_between=0) getdata=0 s_false=0 same_query_repeats=0 query_latency=0ms flushes[present=1/0.000462117ms] ring_poll yields=2802.2 sleeps=0 sleep_avg=0ms sleep_max=0ms
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1229
+PASS test_client_server (0 failure(s))
+  log: BLUR_DXN_MENU BeginStateBlock: recorded calls apply at Apply (DXVK semantics)
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 960x600
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 320x200
+  log: BLUR_DXN_MENU Reset 16x16
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU Reset 64x64
+  log: BLUR_DXN_MENU device released frames=1226
+PASS test_client_server (0 failure(s))
+validation errors: 0, malformed buffers: 0, decode exceptions: 0
+  log: THROW N4dxvk9DxvkErrorE: injected DxvkError at +25ea (module base 0x648a345a6000) bt +2dc5 +304d +25ea +e889bd46db4 +e889b8f6b84 +e889b983ecc +ffff9b75cba5a000
+  log: THROW N4dxvk9DxvkErrorE: injected DxvkError at +268b (module base 0x648a345a6000) bt +2dc5 +304d +268b +e889bd46db4 +e889b8f6b84 +e889b983ecc +ffff9b75cba5a000
+  log: TERMINATE (last throw: N4dxvk9DxvkErrorE: injected DxvkError): server marked stopped, this thread parks
+  log: TERMINATE (last throw: N4dxvk9DxvkErrorE: injected DxvkError): server marked stopped, this thread parks
+PASS eh_containment (state=3 terminate_lines=2 throw_lines=2, process alive)

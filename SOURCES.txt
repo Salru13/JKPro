@@ -1,0 +1,30 @@
+JKPro for PS4: where the source is
+==================================
+
+JKPro 1.00 (package IV0000-JKPR00001_00-JKPRO00000000001).
+
+This repository
+  launcher/   the JKPro launcher (PLAY / PATCH / SETTINGS / SAVE GAMES /
+              DATA PACKS / Help, the release badge), LGPL-2.1-or-later
+  launcher/jkflow/   how the title is built on the JkFlow 1.00 runtime, and
+              how the package is made and signed
+  engine/     engine patches, the Kitserver face-fix scripts and tests
+
+The Wine PS4 runtime
+  JKPro uses the Wine PS4 runtime of JkFlow 1.00 (LGPL-2.1-or-later).
+  Its source, with the changes, is published with JkFlow:
+    https://github.com/Salru13/JkFlow (tag v1.00): wine/, title/, mesa/
+
+The native DXVK client and renderer
+  Our build of DXVK 1.10.3 for the PS4 renderer path. DXVK is under the
+  zlib licence (LICENSES/DXVK-zlib.txt), which does not require the source
+  of changes to be published. It is not published at this time.
+
+Upstream projects
+  Wine:  https://gitlab.winehq.org/wine/wine
+  DXVK:  https://github.com/doitsujin/dxvk
+  Mesa:  https://gitlab.freedesktop.org/mesa/mesa
+
+Not included
+  Pro Evolution Soccer 2013 and Kitserver 13 are not part of this
+  repository or the package. The player uses their own copies.

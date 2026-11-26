@@ -1,0 +1,14 @@
+; JKPro game definition: Pro Evolution Soccer 2013 (PC). See src/jk_games.h.
+; Detection never gates on the exe hash: Kitserver 13 / PESEdit change the exe.
+[identity]
+id = pes2013
+name = PES 2013
+exe = pes2013.exe
+marker = settings.exe
+marker = img/dt01.img
+version = pe
+
+[foreign]
+loader_dir = kitserver
+modded_file = PESEDIT.exe
+modded_file = pes2013_100.exe
