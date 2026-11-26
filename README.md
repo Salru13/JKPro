@@ -2,9 +2,9 @@
 
 Play your own PC copy of **Pro Evolution Soccer 2013** on a PS4: native 1920×1080, High, 60 FPS, full screen.
 
-[![release](https://img.shields.io/github/v/release/Salru13/JKPro)](https://github.com/Salru13/JKPro/releases/latest)
-[![downloads](https://img.shields.io/github/downloads/Salru13/JKPro/total?label=downloads)](https://github.com/Salru13/JKPro/releases)
-[![visits](https://hits.sh/github.com/Salru13/JKPro.svg?label=visits)](https://hits.sh/github.com/Salru13/JKPro/)
+[![release](https://img.shields.io/github/v/release/Salru13/JkPro)](https://github.com/Salru13/JkPro/releases/latest)
+[![downloads](https://img.shields.io/github/downloads/Salru13/JkPro/total?label=downloads)](https://github.com/Salru13/JkPro/releases)
+[![visits](https://hits.sh/github.com/Salru13/JkPro.svg?label=visits)](https://hits.sh/github.com/Salru13/JkPro/)
 ![platform](https://img.shields.io/badge/platform-PS4%20(homebrew)-0070d1)
 ![license](https://img.shields.io/badge/launcher-LGPL--2.1--or--later-blue)
 
@@ -42,7 +42,7 @@ Use only a copy of PES 2013 you own. JKPro does not include the game.
 
 ## Download
 
-Get the `.pkg` from the [Releases](https://github.com/Salru13/JKPro/releases) page (only there).
+Get the `.pkg` from the [Releases](https://github.com/Salru13/JkPro/releases) page (only there).
 
 ## The launcher: PLAY, PATCH, SETTINGS
 
@@ -82,7 +82,7 @@ Kitserver is your own mod, inside your game folder (`PES13/kitserver/`). JKPro d
 
 ## Official builds and verification
 
-Official JKPro releases come **only** from https://github.com/Salru13/JKPro.
+Official JKPro releases come **only** from https://github.com/Salru13/JkPro.
 
 | Badge | Meaning |
 |---|---|
@@ -138,7 +138,7 @@ In SETTINGS → Logs & Support turn on Logs, play again, then save a support bun
 
 ### Official build or unofficial build?
 
-The corner badge says "Official Build by XxXJoker13XxX" only for a copy that matches the signed list of the JKPro project; every other copy says "Unofficial build". Get the official release from github.com/Salru13/JKPro.
+The corner badge says "Official Build by XxXJoker13XxX" only for a copy that matches the signed list of the JKPro project; every other copy says "Unofficial build". Get the official release from github.com/Salru13/JkPro.
 
 ## Support
 
@@ -146,7 +146,7 @@ JKPro has no contact address. If something goes wrong:
 
 1. Read the [FAQ](#faq) and Help in JKPro.
 2. Make a support bundle (**SETTINGS → Logs & Support → Save support bundle**) and copy its folder to a PC over FTP.
-3. Open an issue on [GitHub Issues](https://github.com/Salru13/JKPro/issues): say what you did and what you saw, and attach the support bundle files.
+3. Open an issue on [GitHub Issues](https://github.com/Salru13/JkPro/issues): say what you did and what you saw, and attach the support bundle files.
 
 ## Repository layout
 

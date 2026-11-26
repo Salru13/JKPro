@@ -6,7 +6,7 @@ JKPro stands on the work of many people. This page names everyone whose work JKP
 
 | Who | Role | Link |
 |---|---|---|
-| XxXJoker13XxX | JKPro: launcher, PS4 port, Native DXVK renderer, Kitserver face fix | https://github.com/Salru13/JKPro |
+| XxXJoker13XxX | JKPro: launcher, PS4 port, Native DXVK renderer, Kitserver face fix | https://github.com/Salru13/JkPro |
 
 "Native DXVK by XxXJoker13XxX".
 

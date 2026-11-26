@@ -1,6 +1,6 @@
 # JKPro player guide
 
-JKPro runs your own copy of Pro Evolution Soccer 2013 (PC) on a PS4 at 1920×1080, High, 60 FPS. It is an unofficial fan project. The game is not included: you need your own copy. Official page: github.com/Salru13/JKPro
+JKPro runs your own copy of Pro Evolution Soccer 2013 (PC) on a PS4 at 1920×1080, High, 60 FPS. It is an unofficial fan project. The game is not included: you need your own copy. Official page: github.com/Salru13/JkPro
 
 ## Where everything goes
 
@@ -54,4 +54,4 @@ Help in JKPro explains every tile text and error. The FAQ is on the GitHub page.
 
 ## Support
 
-JKPro has no contact address. Open an issue on github.com/Salru13/JKPro/issues with what you did, what you saw and the support bundle files.
+JKPro has no contact address. Open an issue on github.com/Salru13/JkPro/issues with what you did, what you saw and the support bundle files.
