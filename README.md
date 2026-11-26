@@ -3,6 +3,8 @@
 Play your own PC copy of **Pro Evolution Soccer 2013** on a PS4: native 1920×1080, High, 60 FPS, full screen.
 
 [![release](https://img.shields.io/github/v/release/Salru13/JKPro)](https://github.com/Salru13/JKPro/releases/latest)
+[![downloads](https://img.shields.io/github/downloads/Salru13/JKPro/total?label=downloads)](https://github.com/Salru13/JKPro/releases)
+[![visits](https://hits.sh/github.com/Salru13/JKPro.svg?label=visits)](https://hits.sh/github.com/Salru13/JKPro/)
 ![platform](https://img.shields.io/badge/platform-PS4%20(homebrew)-0070d1)
 ![license](https://img.shields.io/badge/launcher-LGPL--2.1--or--later-blue)
 
