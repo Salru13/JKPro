@@ -68,6 +68,13 @@ done
 mkdir -p "$(dirname "$STAGE/$IPH_PATH")"; cp "$IPH" "$STAGE/$IPH_PATH"
 [ -e "$V/$WSPE_PATH" ] || die "the view has no $WSPE_PATH"
 mkdir -p "$(dirname "$STAGE/$WSPE_PATH")"; cp "$WSPE" "$STAGE/$WSPE_PATH"
+# 1.02: the first-start seed from apply_v01.sh (jkpro_seed.py): 1.00's own copies of the files above,
+# whose END the title must carry (else every first start is E110)
+SEED="$J/jkpro-seed/seed245"
+[ -f "$SEED/blur-native248/seed.idx" ] || die "no jkpro-seed: run apply_v01.sh"
+SEED_END=$(tail -1 "$SEED/blur-native248/seed.idx" | cut -c5-)
+grep -a -q "$SEED_END" "$PRX" || die "the title prx does not carry the seed END ${SEED_END:0:8}"
+cp -r "$SEED" "$STAGE/seed245"
 
 say "release record (jkpro-files/release.txt; release.sig only from the owner)"
 # The signature covers our code too, not only jkpro-files/: the title (eboot.bin + prx) and the native
@@ -136,7 +143,7 @@ printf 'eboot.bin\t%s\n' "$J/reloc-build/eboot.bin" >> "$LIST"
 printf 'sce_module/relocated_wine_app.prx\t%s\n' "$PRX" >> "$LIST"
 (cd "$V" && find -L . -type f | sed 's#^\./##' | sort) | while read -r rel; do
     case "$rel" in
-        blur-files/*|eboot.bin|sce_module/relocated_wine_app.prx|sce_sys/*) continue ;;
+        blur-files/*|eboot.bin|sce_module/relocated_wine_app.prx|sce_sys/*|seed245/*) continue ;;
         sce_module/dxvknative.prx|win/wine/lib/wine/x86_64-unix/dxvknative.prx) continue ;;   # staged: enc17
         sce_module/ws2_32.prx|win/wine/lib/wine/x86_64-unix/ws2_32.prx) continue ;;   # staged: online ws2_32
         win/wine/lib/wine/i386-windows/iphlpapi.dll) continue ;;   # staged: online iphlpapi
@@ -147,6 +154,25 @@ done
 (cd "$STAGE" && find . -type f | sed 's#^\./##' | sort) | while read -r rel; do printf '%s\t%s\n' "$rel" "$STAGE/$rel" >> "$LIST"; done
 if cut -f1 "$LIST" | grep -i -E 'blur\.exe|pes2013\.exe|amax|blur_12|\.afs$|\.img$|\.cpk$|settings\.exe'; then die "a game/AMAX file is in the list"; fi
 wc -l < "$LIST" | sed 's/^/   files: /'
+say "first-start check (every seed file, from the files this package carries)"
+python3 -I - "$LIST" <<'PYEOF'
+import hashlib, sys
+files = dict(l.rstrip('\n').split('\t', 1) for l in open(sys.argv[1]))
+idx = files['seed245/blur-native248/seed.idx']
+bad, n = [], 0
+for line in open(idx, encoding='utf-8'):
+    f = line.rstrip('\n').split('\t')
+    if f[0] != 'F' or len(f) != 5:
+        continue
+    rel = 'seed245/blur-native248/objects/' + f[2] if f[4] == '-' else f[4]
+    data = open(files[rel], 'rb').read() if rel in files else None
+    n += 1
+    if data is None or len(data) != int(f[1]) or hashlib.sha256(data).hexdigest() != f[2]:
+        bad.append('%s <- %s' % (f[3], rel))
+if bad:
+    sys.exit('make_pkg_jkpro: a fresh install would stop at E110:\n  ' + '\n  '.join(bad))
+print('   %d seed files match' % n)
+PYEOF
 
 say "gp4 + pkg"
 python3 -I "$here/../title/make_gp4.py" "$J/jkpro.gp4" "$CONTENT_ID" "$LIST"
