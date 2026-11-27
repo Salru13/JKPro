@@ -11,6 +11,12 @@ W="$J/prospero/native/wine64_main.c"
 O="${O:-$HOME/orbis-win-host-bootstrap/blur-launcher-r4/prospero}"
 # always start from JkFlow 1.00's own files (idempotent re-apply)
 cp "$O/native/wine64_main.c" "$W"; cp "$O/src/bl_paths.h" "$J/prospero/src/bl_paths.h"; cp "$O/src/bl_strings.c" "$J/prospero/src/bl_strings.c"
+cp "$O/src/pw_game_menu.c" "$J/prospero/src/pw_game_menu.c"; cp "$O/native/pw_osk_ps5.c" "$J/prospero/native/pw_osk_ps5.c"
+# 1.02: the in-game menu (L3+R3) and the console keyboard's fallback title say JKPro
+sed -i 's#strcpy(snapshot->title, "JkFlow");#strcpy(snapshot->title, "JKPro");#' "$J/prospero/src/pw_game_menu.c"
+sed -i 's#title ? title : "JkFlow"#title ? title : "JKPro"#' "$J/prospero/native/pw_osk_ps5.c"
+grep -q 'snapshot->title, "JKPro"' "$J/prospero/src/pw_game_menu.c" || { echo "game menu title not set" >&2; exit 1; }
+grep -q 'title : "JKPro"' "$J/prospero/native/pw_osk_ps5.c" || { echo "osk title not set" >&2; exit 1; }
 P="$J/prospero/src/bl_paths.h"
 
 for f in jk_fs.c jk_fs.h jk_sha256.c jk_sha256.h jk_regimport.c jk_regimport.h jk_pes13set.c jk_pes13set.h jk_pes13set_base.inc \
@@ -44,11 +50,16 @@ SEED_END=$(python3 -I "$here/jkpro_seed.py" "$V" "$J/jkpro-seed")
 sed -i -E "s/N245_SEED_END=[0-9a-f]{64}/N245_SEED_END=$SEED_END/" "$J/build-launcher.sh"
 grep -q "N245_SEED_END=$SEED_END" "$J/build-launcher.sh" || { echo "build-launcher.sh END not set" >&2; exit 1; }
 echo "seed END $SEED_END"
+# the build marker in every session log (PW_BUILD_ID) names this release
+sed -i -E "s/PW_BUILD_ID=JKPRO-[0-9.]+ PKG_VERSION=[0-9.]+/PW_BUILD_ID=JKPRO-1.02 PKG_VERSION=01.02/" "$J/build-launcher.sh"
+grep -q "PW_BUILD_ID=JKPRO-1.02" "$J/build-launcher.sh" || { echo "build id not set" >&2; exit 1; }
 
 S="$J/prospero/src/bl_strings.c"
 sed -i -e 's#"Starting Blur\\xE2\\x80\\xA6"#"Starting PES 2013\\xE2\\x80\\xA6"#' \
        -e 's#"Preparing BLUR environment"#"Preparing JKPro (first start only)"#' \
-       -e 's#Your old JkFlow data in %s could not be moved to %s. Nothing was deleted. Free some space and start JkFlow again.#Your old JKPro data in %s could not be moved to %s. Nothing was deleted. Free some space and start JKPro again.#' "$S"
+       -e 's#Your old JkFlow data in %s could not be moved to %s. Nothing was deleted. Free some space and start JkFlow again.#Your old JKPro data in %s could not be moved to %s. Nothing was deleted. Free some space and start JKPro again.#' \
+       -e 's#"JkFlow could not start Blur: too many settings. Turn off Enable logs and try again."#"JKPro could not start PES 2013: too many settings. Turn off Logs and try again."#' "$S"
+grep -q 'JKPro could not start PES 2013: too many settings' "$S" || { echo "too-many-settings text not set" >&2; exit 1; }
 grep -n 'BL_S_LOADER\]\|BL_S_LOADER_PREPARE\]' "$S"
 
 python3 - "$W" <<'EOF'
@@ -148,6 +159,16 @@ static void jkpro_account_load(void)
 # session log, which opens after the launcher, so a failed first start left nothing. Now the reason is
 # drawn on the E110 screen and appended to <System>/state/launcher.log (also on a later Retry), and the
 # texts say JKPro.
+# 1.02: /data/BLUR belongs to JkFlow (its early builds kept Blur or their data there). JkFlow's own move of
+# it into the app's folder must never run in JKPro: it would take a player's Blur away from JkFlow.
+old = '    moved = blur_migrate_game(old, jkflow) ? 0 : bl_paths_migrate(old, &paths, blur_migrate_log, NULL);\n'
+if old in s:
+    s = s.replace(old, '    moved = 0;   /* JKPro: /data/BLUR is JkFlow\'s; never moved (blur_migrate_game, bl_paths_migrate) */\n', 1)
+    s = s.replace('static int blur_migrate_game(const char *old, const char *jkflow)\n',
+                  '__attribute__((unused)) static int blur_migrate_game(const char *old, const char *jkflow)\n', 1)
+    s = s.replace('static void blur_migrate_log(void *context, const char *line)\n',
+                  '__attribute__((unused)) static void blur_migrate_log(void *context, const char *line)\n', 1)
+assert 'blur_migrate_game(old, jkflow) ?' not in s, 'BLUR migration still on'
 if 'jkpro_seed_reason' not in s:
     s = s.replace('#define BLUR_HOME_NOTE "The PS4 may then show \'Something went wrong\'. That is expected here; start JkFlow again."',
                   '#define BLUR_HOME_NOTE "The PS4 may then show \'Something went wrong\'. That is expected here; start JKPro again."')

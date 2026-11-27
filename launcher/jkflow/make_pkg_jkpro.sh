@@ -14,7 +14,7 @@ B="${JK_BOOTSTRAP:-$HOME/orbis-win-host-bootstrap}"
 J="${J:-$B/jkpro-title}"
 V="$B/blur-launcher-r4/package-view-292"
 TITLE_ID="${TITLE_ID:-JKPR00001}"
-VER="${JK_VERSION:-01.01}"
+VER="${JK_VERSION:-01.02}"
 CONTENT_ID="IV0000-${TITLE_ID}_00-JKPRO00000000001"
 TOOLS="$B/native298-package277/orbis/sdk/orbis-sdk-v1/sdk/bin/linux"
 PKGTOOL="$TOOLS/PkgTool.Core"
@@ -85,7 +85,7 @@ python3 -I - "$STAGE/jkpro-files" \
     "sce_module/ws2_32.prx=$WS2" "win/wine/lib/wine/x86_64-unix/ws2_32.prx=$WS2" "$IPH_PATH=$IPH" "$WSPE_PATH=$WSPE" <<'PYEOF'
 import hashlib, os, sys
 base = sys.argv[1]
-lines = ['JKPRO-RELEASE 1', 'build JKPro ' + os.environ.get('JK_BUILD_NAME', '1.01')]
+lines = ['JKPRO-RELEASE 1', 'build JKPro ' + os.environ.get('JK_BUILD_NAME', '1.02')]
 for spec in sys.argv[2:]:
     rel, src = spec.split('=', 1)
     lines.append('%s  %s' % (hashlib.sha256(open(src, 'rb').read()).hexdigest(), rel))
