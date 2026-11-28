@@ -84,6 +84,15 @@ Kitserver is your own mod, inside your game folder (`PES13/kitserver/`). JKPro d
 
 From 1.01, JKPro can take PES 2013 online through [ThirteenServer](https://thirteenserver.online), a community server for PES 2013. It is not affiliated with Konami or JKPro.
 
+### Before you go online
+
+Online play needs two things in your game:
+
+1. **PES 2013 patch 1.04.** Update your PC copy to 1.04 before you copy it to `/data/JkPro/PES13`.
+2. **Data Pack 6 (DLC 6), installed by you.** The game cannot download the server's data pack on the PS4: it stops at "Insufficient space left on Hard disk". Install it first:
+   1. Put Data Pack 6's `dt0f.img` in `/data/JkPro/Saves/PES13/Import/` (FTP or USB).
+   2. Open JKPro, then **DATA PACKS → Install**.
+
 ### Set up once
 
 1. Create a free account on [thirteenserver.online/register](https://thirteenserver.online/register). Your username becomes your name in the game.
@@ -105,7 +114,7 @@ The game's own keyboard does not open on the PS4, so JKPro types your saved acco
 2. PES asks for a **registration code**: select the box, hold **L1 + R1** and click the touchpad, then confirm.
 3. At the login, select the **ID** box: hold **L1** and click the touchpad.
 4. Select the **password** box: hold **R1** and click the touchpad.
-5. Confirm and log in. Accept the server's data pack when the game offers it. Then pick a lobby and play.
+5. Confirm and log in. Then pick a lobby and play.
 
 Hold the shoulder button first, then click the touchpad. Each click types the whole text and presses Enter.
 
@@ -114,7 +123,7 @@ How it works:
 - Your `pes2013.exe` is not changed.
 - Your account stays on your console only, in `/data/JkPro/System/online-account` (line 1 ID, line 2 password, optional line 3 registration code). It is never logged and never sent anywhere except to the game. Reinstalling or updating the pkg keeps it.
 - **Off** (the default) plays exactly as before.
-- The server sends its data pack inside the game. It goes into `/data/JkPro/DataPacks/PES13`.
+- The server's data pack is Data Pack 6. Install it yourself under **DATA PACKS** (see [Before you go online](#before-you-go-online)); the in-game download does not work on the PS4.
 
 ## Official builds and verification
 
@@ -159,11 +168,12 @@ Yes. Import is yours: JKPro empties it after a checked copy, and you can add, re
 
 Turn on **SETTINGS → Kitserver face fix**. Some option files give players a face that does not exist in the game's data, and Kitserver's face module then makes the game read a texture that is not there. The fix shows the game's default face for those players.
 
-### Online: "Connecting to network" or "Different data"
+### Online: "Connecting to network", "Different data" or "Insufficient space"
 
 - **Connecting to network** that never finishes: check that **SETTINGS → Online** is set to ThirteenServer, and that the PS4 has internet.
 - **The server changed its address:** put a file `online-server.txt` in `/data/JkPro/System/` with the server's lines in hosts-file form, for example `95.214.55.111 ntl.konamionline.com`. JKPro uses that file instead of its built-in list.
-- **Different data:** the data packs do not match. Let the game download the server's data pack, and do not install another pack under DATA PACKS while you play online.
+- **Different data:** the data packs do not match. Install Data Pack 6 under **DATA PACKS** (see [Before you go online](#before-you-go-online)), and do not use another pack while you play online.
+- **"Insufficient space left on Hard disk"** when you go online: the game is trying to download its data pack, which does not work on the PS4. Your disk is not full. Install Data Pack 6 under **DATA PACKS** and check that your game is patch 1.04.
 
 ### 30 FPS or 60 FPS?
 
