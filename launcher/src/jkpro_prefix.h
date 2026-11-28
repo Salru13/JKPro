@@ -25,6 +25,16 @@ int jkpro_redirect_documents(const char *user_reg, const char *win_dir);
  * change. 1 changed, 0 already so, -1 not done. */
 int jkpro_redirect_common_appdata(const char *system_reg, const char *win_dir);
 
+/* PES 2013's start-up check (its "minimum system requirements" warning, which Kitserver's lodmixer
+ * otherwise skips): sets, in system_reg, HKLM\Hardware\Description\System\CentralProcessor\0
+ * "~MHz"=3500 plus the processor's identity (wineboot, which normally makes that key, never runs
+ * on the console), and in user_reg, HKCU\Software\Wine\Direct3D "VideoMemorySize"="2048" and
+ * "renderer"="no3d" (the video memory DirectDraw reports through wined3d; the console has no GL).
+ * A missing key is added at the end of the file; in a present key only these values change.
+ * Both files must be Wine registries, else nothing is written. Written atomically, only on a
+ * change. 1 changed, 0 already so, -1 not done. */
+int jkpro_pes_check_values(const char *system_reg, const char *user_reg);
+
 /* <prefix_dir>/system.reg missing or not a Wine registry, and good_dir (the
  * launcher's backup/registry) has no good system.reg: removes the seed's
  * completion marker (<prefix_dir>/.n245-complete), so JkFlow's seed import

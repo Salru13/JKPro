@@ -229,8 +229,114 @@ static void open_perms_makes_tree_writable(void)
     CHECK(jkpro_open_perms(p) == -1);
 }
 
+/* PES 2013's start-up check (minimum system requirements): the processor's ~MHz under HKLM\Hardware
+ * (wineboot never runs on the console, so the key is not there) and the video memory DirectDraw
+ * reports through wined3d (HKCU\Software\Wine\Direct3D). Without them the game shows its warning
+ * unless Kitserver's lodmixer skips the check. */
+#define CPU_KEY "[Hardware\\\\Description\\\\System\\\\CentralProcessor\\\\0]"
+#define CPU_VALUES "\"~MHz\"=dword:00000dac\n" \
+                   "\"Identifier\"=\"AMD64 Family 22 Model 48 Stepping 1\"\n" \
+                   "\"ProcessorNameString\"=\"AMD Jaguar 8-Core Processor\"\n" \
+                   "\"VendorIdentifier\"=\"AuthenticAMD\"\n"
+#define D3D_KEY "[Software\\\\Wine\\\\Direct3D]"
+#define D3D_VALUES "\"renderer\"=\"no3d\"\n\"VideoMemorySize\"=\"2048\"\n"
+
+static void pes_check_values_added(void)
+{
+    static const char SYS0[] = "WINE REGISTRY Version 2\n;; All keys relative to \\\\Machine\n\n"
+                               "[Software\\\\Other] 1794011076\n\"A\"=\"b\"\n";
+    char dir[256], sys[400], usr[400], *got = malloc(16384);
+    tmp_dir(dir, sizeof dir);
+    tmp_put(dir, "system.reg", SYS0);
+    tmp_put(dir, "user.reg", "WINE REGISTRY Version 2\n\n[Software\\\\Other] 1794011076\n\"A\"=\"b\"\n\n");
+    snprintf(sys, sizeof sys, "%s/system.reg", dir);
+    snprintf(usr, sizeof usr, "%s/user.reg", dir);
+    CHECK_EQ(jkpro_pes_check_values(sys, usr), 1);
+    CHECK(tmp_get(dir, "system.reg", got, 16384) > 0);
+    CHECK(!strncmp(got, SYS0, strlen(SYS0)));                                /* everything before kept */
+    CHECK(strstr(got, "\n" CPU_KEY "\n" CPU_VALUES) != NULL);
+    CHECK(tmp_get(dir, "user.reg", got, 16384) > 0);
+    CHECK(strstr(got, "[Software\\\\Other] 1794011076\n\"A\"=\"b\"\n") != NULL);
+    CHECK(strstr(got, "\n" D3D_KEY "\n" D3D_VALUES) != NULL);
+    /* already so: nothing written */
+    CHECK_EQ(jkpro_pes_check_values(sys, usr), 0);
+    free(got);
+    tmp_rm_rf(dir);
+}
+
+static void pes_check_values_replaced_in_place(void)
+{
+    char dir[256], sys[400], usr[400], *got = malloc(16384);
+    tmp_dir(dir, sizeof dir);
+    tmp_put(dir, "system.reg", "WINE REGISTRY Version 2\n\n" CPU_KEY " 1794011076\n\"~MHz\"=dword:00000640\n"
+                               "\"FeatureSet\"=dword:00001fff\n\n[Software\\\\Other]\n\"A\"=\"b\"\n");
+    tmp_put(dir, "user.reg", "WINE REGISTRY Version 2\n\n" D3D_KEY " 1794011076\n\"VideoMemorySize\"=\"128\"\n"
+                             "\"csmt\"=dword:00000001\n\n");
+    snprintf(sys, sizeof sys, "%s/system.reg", dir);
+    snprintf(usr, sizeof usr, "%s/user.reg", dir);
+    CHECK_EQ(jkpro_pes_check_values(sys, usr), 1);
+    CHECK(tmp_get(dir, "system.reg", got, 16384) > 0);
+    CHECK(strstr(got, "\"~MHz\"=dword:00000dac\n") != NULL);
+    CHECK(strstr(got, "\"~MHz\"=dword:00000640") == NULL);
+    CHECK(strstr(got, "\"FeatureSet\"=dword:00001fff\n") != NULL);          /* other values kept */
+    CHECK(strstr(got, "\"VendorIdentifier\"=\"AuthenticAMD\"\n") != NULL);  /* missing ones added */
+    CHECK(strstr(got, CPU_KEY) == strstr(got, "[Hardware"));                /* still one section */
+    CHECK(strstr(strstr(got, CPU_KEY) + 1, CPU_KEY) == NULL);
+    CHECK(strstr(got, "\n\n[Software\\\\Other]\n\"A\"=\"b\"\n") != NULL);
+    CHECK(tmp_get(dir, "user.reg", got, 16384) > 0);
+    CHECK(strstr(got, "\"VideoMemorySize\"=\"2048\"\n") != NULL);
+    CHECK(strstr(got, "\"VideoMemorySize\"=\"128\"") == NULL);
+    CHECK(strstr(got, "\"csmt\"=dword:00000001\n") != NULL);
+    CHECK(strstr(got, "\"renderer\"=\"no3d\"\n") != NULL);
+    CHECK_EQ(jkpro_pes_check_values(sys, usr), 0);
+    free(got);
+    tmp_rm_rf(dir);
+}
+
+static void pes_check_values_duplicate_short_lines(void)
+{
+    /* many short duplicate lines that each grow when replaced: no overflow (ASan) */
+    char dir[256], sys[400], usr[400], *got = malloc(65536), *big = malloc(8192);
+    size_t n = (size_t)snprintf(big, 8192, "WINE REGISTRY Version 2\n\n" D3D_KEY "\n");
+    for (int i = 0; i < 300; i++) n += (size_t)snprintf(big + n, 8192 - n, "\"renderer\"=\n");
+    tmp_dir(dir, sizeof dir);
+    tmp_put(dir, "system.reg", "WINE REGISTRY Version 2\n\n");
+    tmp_put(dir, "user.reg", big);
+    snprintf(sys, sizeof sys, "%s/system.reg", dir);
+    snprintf(usr, sizeof usr, "%s/user.reg", dir);
+    CHECK_EQ(jkpro_pes_check_values(sys, usr), 1);
+    CHECK(tmp_get(dir, "user.reg", got, 65536) > 0);
+    CHECK(strstr(got, "\"renderer\"=\n") == NULL);
+    CHECK(strstr(got, "\"VideoMemorySize\"=\"2048\"\n") != NULL);
+    free(got); free(big);
+    tmp_rm_rf(dir);
+}
+
+static void pes_check_values_refused_without_registry(void)
+{
+    char dir[256], sys[400], usr[400], *got = malloc(4096);
+    tmp_dir(dir, sizeof dir);
+    tmp_put(dir, "system.reg", "not a registry\n");
+    tmp_put(dir, "user.reg", "WINE REGISTRY Version 2\n\n");
+    snprintf(sys, sizeof sys, "%s/system.reg", dir);
+    snprintf(usr, sizeof usr, "%s/user.reg", dir);
+    CHECK_EQ(jkpro_pes_check_values(sys, usr), -1);
+    CHECK(tmp_get(dir, "system.reg", got, 4096) > 0);
+    CHECK(!strcmp(got, "not a registry\n"));                                 /* untouched */
+    CHECK(tmp_get(dir, "user.reg", got, 4096) > 0);
+    CHECK(!strcmp(got, "WINE REGISTRY Version 2\n\n"));                       /* nothing half done */
+    snprintf(sys, sizeof sys, "%s/missing.reg", dir);
+    CHECK_EQ(jkpro_pes_check_values(sys, usr), -1);
+    free(got);
+    tmp_rm_rf(dir);
+}
+
 int main(void)
 {
+    RUN(pes_check_values_added);
+    RUN(pes_check_values_replaced_in_place);
+    RUN(pes_check_values_duplicate_short_lines);
+    RUN(pes_check_values_refused_without_registry);
     RUN(wall_stamp_is_utc_minutes);
     RUN(open_perms_makes_tree_writable);
     RUN(documents_redirected);

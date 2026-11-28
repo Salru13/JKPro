@@ -113,6 +113,106 @@ static int redirect_values(const char *reg, const char *win_dir, const char *con
     return rc;
 }
 
+/* text (a Wine registry file, len bytes) with each of lines[] ("\"name\"=value") set in the key
+ * whose header is key ("[...]", any timestamp after it): a value already there is replaced in
+ * place, a missing one goes right after the header; a missing key is added at the end. Returns a
+ * malloc'd text (*out_len), *changed 1 when it differs; NULL on no memory. */
+static char *set_key_values(const char *text, size_t len, const char *key, const char *const *lines, int nlines,
+                            size_t *out_len, int *changed)
+{
+    size_t klen = strlen(key), extra = klen + 4;
+    for (int i = 0; i < nlines; i++) extra += strlen(lines[i]) + 1;
+    size_t cap = len + extra + 1;
+    char *out = malloc(cap);
+    if (!out) return NULL;
+    int done[16] = { 0 }, found = 0, inside = 0;
+    size_t on = 0, insert_at = 0;
+    *changed = 0;
+    for (size_t pos = 0; pos < len;) {
+        const char *line = text + pos, *nl = memchr(line, '\n', len - pos);
+        size_t ll = nl ? (size_t)(nl - line) : len - pos;
+        const char *repl = NULL;
+        if (ll && line[0] == '[') {
+            inside = !found && ll >= klen && !memcmp(line, key, klen) && (ll == klen || line[klen] == ' ');
+            if (inside) found = 1;
+        } else if (inside) {
+            for (int i = 0; i < nlines && !repl; i++) {
+                size_t nn = (size_t)(strchr(lines[i], '=') - lines[i]) + 1;
+                if (ll >= nn && !memcmp(line, lines[i], nn)) { repl = lines[i]; done[i] = 1; }
+            }
+        }
+        size_t need = on + (repl ? strlen(repl) : ll) + 1 + extra;   /* this line, then room for the rest */
+        if (need > cap) {
+            char *grown = realloc(out, need + len);
+            if (!grown) { free(out); return NULL; }
+            out = grown;
+            cap = need + len;
+        }
+        if (repl) {
+            size_t rl = strlen(repl);
+            if (rl != ll || memcmp(repl, line, ll)) *changed = 1;
+            memcpy(out + on, repl, rl);
+            on += rl;
+        } else {
+            memcpy(out + on, line, ll);
+            on += ll;
+        }
+        if (nl) out[on++] = '\n';
+        if (inside && line[0] == '[') insert_at = on;          /* right after the header line */
+        pos += ll + (nl ? 1 : 0);
+    }
+    if (found) {                                               /* the missing values after the header */
+        size_t add = 0;
+        for (int i = 0; i < nlines; i++) if (!done[i]) add += strlen(lines[i]) + 1;
+        if (add) {
+            memmove(out + insert_at + add, out + insert_at, on - insert_at);
+            size_t at = insert_at;
+            for (int i = 0; i < nlines; i++)
+                if (!done[i]) { size_t n = strlen(lines[i]); memcpy(out + at, lines[i], n); out[at + n] = '\n'; at += n + 1; }
+            on += add;
+            *changed = 1;
+        }
+    } else {                                                   /* a new key at the end */
+        if (on && out[on - 1] != '\n') out[on++] = '\n';
+        if (on < 2 || out[on - 2] != '\n') out[on++] = '\n';
+        memcpy(out + on, key, klen);
+        on += klen;
+        out[on++] = '\n';
+        for (int i = 0; i < nlines; i++) { size_t n = strlen(lines[i]); memcpy(out + on, lines[i], n); on += n; out[on++] = '\n'; }
+        *changed = 1;
+    }
+    *out_len = on;
+    return out;
+}
+
+int jkpro_pes_check_values(const char *system_reg, const char *user_reg)
+{
+    static const char *const cpu[] = {
+        "\"~MHz\"=dword:00000dac",                                   /* 3500 */
+        "\"Identifier\"=\"AMD64 Family 22 Model 48 Stepping 1\"",    /* the PS4's Jaguar */
+        "\"ProcessorNameString\"=\"AMD Jaguar 8-Core Processor\"",
+        "\"VendorIdentifier\"=\"AuthenticAMD\"",
+    };
+    static const char *const d3d[] = { "\"renderer\"=\"no3d\"", "\"VideoMemorySize\"=\"2048\"" };
+    if (!system_reg || !user_reg) return -1;
+    size_t sl = 0, ul = 0, sn = 0, un = 0;
+    char *st = jk_fs_read(system_reg, 64u << 20, &sl), *ut = jk_fs_read(user_reg, 64u << 20, &ul);
+    char *so = NULL, *uo = NULL;
+    int rc = -1, sc = 0, uc = 0;
+    if (!st || !ut || sl < sizeof REG_HEAD - 1 || ul < sizeof REG_HEAD - 1 ||
+        memcmp(st, REG_HEAD, sizeof REG_HEAD - 1) || memcmp(ut, REG_HEAD, sizeof REG_HEAD - 1))
+        goto out;
+    so = set_key_values(st, sl, "[Hardware\\\\Description\\\\System\\\\CentralProcessor\\\\0]", cpu, 4, &sn, &sc);
+    uo = set_key_values(ut, ul, "[Software\\\\Wine\\\\Direct3D]", d3d, 2, &un, &uc);
+    if (!so || !uo) goto out;
+    if (sc && jk_fs_write_atomic(system_reg, so, sn) != 0) goto out;
+    if (uc && jk_fs_write_atomic(user_reg, uo, un) != 0) goto out;
+    rc = sc || uc;
+out:
+    free(st); free(ut); free(so); free(uo);
+    return rc;
+}
+
 int jkpro_redirect_documents(const char *user_reg, const char *win_dir)
 {
     static const char *const names[] = { "\"Personal\"=", "\"My Documents\"=" };

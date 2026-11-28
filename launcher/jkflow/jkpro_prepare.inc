@@ -226,6 +226,14 @@ static void jkpro_launcher_screen(void)
         int redir = jkpro_redirect_common_appdata(system_reg, win_datapacks);
         PS5LOG_LOG("JKPRO datapacks=%s mkdir=%d redirect=%d", win_datapacks, mk, redir);
     }
+    {   /* every start: what PES 2013's start-up check reads (processor ~MHz, video memory), so its
+         * "minimum system requirements" warning does not stop the game with or without Kitserver */
+        char system_reg[200], user_reg[200];
+        snprintf(system_reg, sizeof system_reg, "%s/system.reg", prefix_dir);
+        snprintf(user_reg, sizeof user_reg, "%s/user.reg", prefix_dir);
+        int chk = jkpro_pes_check_values(system_reg, user_reg);
+        PS5LOG_LOG("JKPRO pes check values rc=%d", chk);
+    }
 
     {   /* start record for the crash retry */
         char line[64];

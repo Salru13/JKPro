@@ -51,8 +51,8 @@ sed -i -E "s/N245_SEED_END=[0-9a-f]{64}/N245_SEED_END=$SEED_END/" "$J/build-laun
 grep -q "N245_SEED_END=$SEED_END" "$J/build-launcher.sh" || { echo "build-launcher.sh END not set" >&2; exit 1; }
 echo "seed END $SEED_END"
 # the build marker in every session log (PW_BUILD_ID) names this release
-sed -i -E "s/PW_BUILD_ID=JKPRO-[0-9.]+ PKG_VERSION=[0-9.]+/PW_BUILD_ID=JKPRO-1.02 PKG_VERSION=01.02/" "$J/build-launcher.sh"
-grep -q "PW_BUILD_ID=JKPRO-1.02" "$J/build-launcher.sh" || { echo "build id not set" >&2; exit 1; }
+sed -i -E "s/PW_BUILD_ID=JKPRO-[0-9.]+ PKG_VERSION=[0-9.]+/PW_BUILD_ID=JKPRO-1.03 PKG_VERSION=01.03/" "$J/build-launcher.sh"
+grep -q "PW_BUILD_ID=JKPRO-1.03" "$J/build-launcher.sh" || { echo "build id not set" >&2; exit 1; }
 
 S="$J/prospero/src/bl_strings.c"
 sed -i -e 's#"Starting Blur\\xE2\\x80\\xA6"#"Starting PES 2013\\xE2\\x80\\xA6"#' \
